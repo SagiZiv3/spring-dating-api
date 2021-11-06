@@ -1,28 +1,43 @@
 package com.example.demo.boundaries;
 
-public class UserBoundary {
+import java.util.HashMap;
+import java.util.Map;
 
-    public String email;
-    public String role;
-    public String username;
-    public String avatar;
+public class UserBoundary {
+    private Map<String, String> userId;
+
+    private String role;
+    private String username;
+    private String avatar;
 
     public UserBoundary() {
     }
 
     public UserBoundary(String email, String role, String username, String avatar) {
-        this.email = email;
         this.role = role;
         this.username = username;
         this.avatar = avatar;
+        this.userId = new HashMap<String, String>();
+        this.userId.put("domain", "example.com");
+        this.userId.put("email", email);
     }
 
-    public String getEmail() {
-        return this.email;
+    public UserBoundary(NewUserBoundary newUser) {
+        // this.email = email;
+        this.role = newUser.getRole();
+        this.username = newUser.getUsername();
+        this.avatar = newUser.getAvatar();
+        this.userId = new HashMap<String, String>();
+        this.userId.put("domain", "example.com");
+        this.userId.put("email", newUser.getEmail());
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public Map<String, String> getUserId() {
+        return this.userId;
+    }
+
+    public void setUserId(Map<String, String> userId) {
+        this.userId = userId;
     }
 
     public String getRole() {
