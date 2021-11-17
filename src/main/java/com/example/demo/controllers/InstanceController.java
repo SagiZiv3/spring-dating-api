@@ -19,7 +19,7 @@ public class InstanceController {
 
     @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public InstanceBoundary createInstance(@RequestBody InstanceBoundary newInstance,
-            @PathVariable("userDomain") String userDomain, @PathVariable("userEmail") String userEmail) {
+                                           @PathVariable("userDomain") String userDomain, @PathVariable("userEmail") String userEmail) {
         InstanceBoundary instance = new InstanceBoundary(newInstance);
 
         HashMap<String, String> instanceId = new HashMap<>();
@@ -41,15 +41,15 @@ public class InstanceController {
 
     @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", method = RequestMethod.PUT)
     public void updateInstance(@RequestBody InstanceBoundary newInstance, @PathVariable("userDomain") String userDomain,
-            @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String instanceDomain,
-            @PathVariable("instanceId") String instanceId) {
+                               @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String instanceDomain,
+                               @PathVariable("instanceId") String instanceId) {
         // here should be an update for the user instance
     }
 
     @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public InstanceBoundary retrieveInstance(@PathVariable("userDomain") String userDomain,
-            @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String instanceDomain,
-            @PathVariable("instanceId") String instanceId) {
+                                             @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String instanceDomain,
+                                             @PathVariable("instanceId") String instanceId) {
         InstanceBoundary instance = new InstanceBoundary();
         return instance;
 
@@ -57,7 +57,7 @@ public class InstanceController {
 
     @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ArrayList<InstanceBoundary> getAllInstances(@PathVariable("userDomain") String userDomain,
-            @PathVariable("userEmail") String useEmail) {
+                                                       @PathVariable("userEmail") String useEmail) {
         InstanceBoundary instance1 = new InstanceBoundary();
         InstanceBoundary instance2 = new InstanceBoundary();
         ArrayList<InstanceBoundary> arr = new ArrayList<>();

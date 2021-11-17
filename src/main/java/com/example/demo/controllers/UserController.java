@@ -22,13 +22,13 @@ public class UserController {
 
     @RequestMapping(path = "/iob/users/{userDomain}/{userEmail}", method = RequestMethod.PUT)
     public void updateUser(@RequestBody UserBoundary user, @PathVariable("userDomain") String userDomain,
-            @PathVariable("userEmail") String userEmail) {
+                           @PathVariable("userEmail") String userEmail) {
         // here should be an update of the user and returning nothing
     }
 
     @RequestMapping(path = "/iob/users/login/{userDomain}/{userEmail}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserBoundary getUser(@PathVariable("userDomain") String userDomain,
-            @PathVariable("userEmail") String userEmail) {
+                                @PathVariable("userEmail") String userEmail) {
         // returning user boundary
 //        UserBoundary user = new UserBoundary("email", UserRole.PLAYER, "username", "J");
         return null;
