@@ -1,23 +1,29 @@
 package com.example.demo.boundaries;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.util.Date;
 import java.util.Map;
 
 
-@lombok.Getter
-@lombok.Setter
-@lombok.NoArgsConstructor
-@lombok.AllArgsConstructor
-@lombok.ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class InstanceBoundary {
-    @lombok.Getter
+    @Getter
     private static long id;
     private Map<String, String> instanceId;
     private String type;
     private String name;
     private Boolean active;
     private Date createdTimestamp;
-    private Map<String, Map<String, String>> createdBy;
+    private Map<String, UserId> createdBy;
     private Map<String, Double> location;
     private Map<String, Object> instanceAttributes;
 

@@ -1,4 +1,4 @@
-package com.example.demo.boundaries;
+package com.example.demo.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,12 +15,13 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class ActivityBoundary {
-    private static long id;
-    private Map<String, String> activityId;
+public class InstanceEntity {
+    private String instanceId;
     private String type;
-    private Map<String, Map<String, String>> instance;
+    private String name;
+    private boolean active;
     private Date createdTimestamp;
-    private Map<String, UserId> invokedBy;
-    private Map<String, Object> activityAttributes;
+    private String createdBy;
+    private String location;
+    private Map<String, Object> instanceAttributes;
 }

@@ -16,8 +16,8 @@ public class UserController {
     @RequestMapping(path = "/iob/users/", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserBoundary createUser(@RequestBody NewUserBoundary newUser) {
         // returning user boundary
-        UserBoundary user = new UserBoundary(newUser);
-        return user;
+//        UserBoundary user = new UserBoundary(newUser);
+        return null;
     }
 
     @RequestMapping(path = "/iob/users/{userDomain}/{userEmail}", method = RequestMethod.PUT)
@@ -30,7 +30,7 @@ public class UserController {
     public UserBoundary getUser(@PathVariable("userDomain") String userDomain,
             @PathVariable("userEmail") String userEmail) {
         // returning user boundary
-        UserBoundary user = new UserBoundary("email", "role", "username", "J");
-        return user;
+//        UserBoundary user = new UserBoundary("email", UserRole.PLAYER, "username", "J");
+        return null;
     }
 }
