@@ -4,20 +4,23 @@ import com.example.demo.boundaries.InstanceBoundary;
 import com.example.demo.boundaries.UserBoundary;
 import com.example.demo.boundaries.UserId;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-// test upload 
 @RestController
+@RequestMapping(path = "/iob/instances")
 public class InstanceController {
 
-    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    //    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{userDomain}/{userEmail}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public InstanceBoundary createInstance(@RequestBody InstanceBoundary newInstance,
                                            @PathVariable("userDomain") String userDomain, @PathVariable("userEmail") String userEmail) {
         InstanceBoundary instance = new InstanceBoundary(newInstance);
@@ -39,14 +42,16 @@ public class InstanceController {
         return instance;
     }
 
-    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", method = RequestMethod.PUT)
+    //    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", method = RequestMethod.PUT)
+    @PutMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}")
     public void updateInstance(@RequestBody InstanceBoundary newInstance, @PathVariable("userDomain") String userDomain,
                                @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String instanceDomain,
                                @PathVariable("instanceId") String instanceId) {
         // here should be an update for the user instance
     }
 
-    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    //    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public InstanceBoundary retrieveInstance(@PathVariable("userDomain") String userDomain,
                                              @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String instanceDomain,
                                              @PathVariable("instanceId") String instanceId) {
@@ -55,7 +60,8 @@ public class InstanceController {
 
     }
 
-    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    //    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{userDomain}/{userEmail}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ArrayList<InstanceBoundary> getAllInstances(@PathVariable("userDomain") String userDomain,
                                                        @PathVariable("userEmail") String useEmail) {
         InstanceBoundary instance1 = new InstanceBoundary();
