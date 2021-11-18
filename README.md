@@ -1,6 +1,11 @@
 # Dating APP (Spring API)
 
+## References:
+1. `lombok` annotation - https://medium.com/@udith.indrakantha/say-bye-bye-to-annoying-getters-setters-shorten-your-java-code-with-lombok-d656ae66e163
+2. `lombok` in VS Code - https://stackoverflow.com/a/51334122
+3. `RequestMapping` and `GetMapping` - https://stackoverflow.com/a/53132931
 
+---
 **Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
 
 When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
