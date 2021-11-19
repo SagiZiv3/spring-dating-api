@@ -17,9 +17,9 @@ import java.util.Map;
 @ToString
 public class ActivityBoundary {
     private static long id;
-    private Map<String, String> activityId;
+    private ObjectId activityId;
     private String type;
-    private Map<String, Map<String, String>> instance;
+    private Map<String, ObjectId> instance;
     private Date createdTimestamp;
     private Map<String, UserId> invokedBy;
     private Map<String, Object> activityAttributes;
