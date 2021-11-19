@@ -16,8 +16,6 @@ import java.util.Map;
 @AllArgsConstructor
 @ToString
 public class InstanceBoundary {
-    @Getter
-    private static long id;
     private ObjectId instanceId;
     private String type;
     private String name;

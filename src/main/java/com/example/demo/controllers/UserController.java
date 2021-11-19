@@ -2,8 +2,9 @@ package com.example.demo.controllers;
 
 import com.example.demo.boundaries.NewUserBoundary;
 import com.example.demo.boundaries.UserBoundary;
-import com.example.demo.boundaries.UserId;
-import org.springframework.beans.factory.annotation.Value;
+import com.example.demo.boundaries.converters.UserConverter;
+import com.example.demo.logic.UsersService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,19 +17,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/iob/users/")
 public class UserController {
-    @Value("${spring.application.name:dummy}")
-    private String applicationDomainName;
+    private final UsersService usersService;
+    private final UserConverter userConverter;
+
+    @Autowired
+    public UserController(UsersService usersService, UserConverter userConverter) {
+        this.usersService = usersService;
+        this.userConverter = userConverter;
+    }
 
     //    @RequestMapping(path = "/iob/users/", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserBoundary createUser(@RequestBody NewUserBoundary newUser) {
-        // returning user boundary
-        UserBoundary user = new UserBoundary();
-        user.setUserId(new UserId(applicationDomainName, newUser.getEmail())); // Create the user with the app's domain
-        user.setUsername(newUser.getUsername());
-        user.setRole(newUser.getRole());
-        user.setAvatar(newUser.getAvatar());
-        return user;
+        UserBoundary userBoundary = userConverter.toUserBoundary(newUser);
+        return usersService.createUser(userBoundary);
     }
 
     //    @RequestMapping(path = "/iob/users/{userDomain}/{userEmail}", method = RequestMethod.PUT)
@@ -36,6 +38,7 @@ public class UserController {
     public void updateUser(@RequestBody UserBoundary user, @PathVariable("userDomain") String userDomain,
                            @PathVariable("userEmail") String userEmail) {
         // here should be an update of the user and returning nothing
+        usersService.updateUser(userDomain, userEmail, user);
     }
 
     //    @RequestMapping(path = "/iob/users/login/{userDomain}/{userEmail}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -44,6 +47,6 @@ public class UserController {
                                 @PathVariable("userEmail") String userEmail) {
         // returning user boundary
 //        UserBoundary user = new UserBoundary("email", UserRole.PLAYER, "username", "J");
-        return null;
+        return usersService.getAllUsers(userDomain, userEmail).get(0);
     }
 }
