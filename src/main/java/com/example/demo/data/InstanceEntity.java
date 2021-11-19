@@ -1,5 +1,6 @@
 package com.example.demo.data;
 
+import com.example.demo.boundaries.UserId;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +22,7 @@ public class InstanceEntity {
     private String name;
     private boolean active;
     private Date createdTimestamp;
-    private String createdBy;
+    private Map<String, UserId> createdBy;
     private String location;
-    private Map<String, Object> instanceAttributes;
+    private Map<String, Object> instanceAttributes; // TODO: Use a simpler data-structure that can be saved in db.
 }

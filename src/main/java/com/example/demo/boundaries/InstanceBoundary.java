@@ -18,13 +18,13 @@ import java.util.Map;
 public class InstanceBoundary {
     @Getter
     private static long id;
-    private Map<String, String> instanceId;
+    private ObjectId instanceId;
     private String type;
     private String name;
     private Boolean active;
     private Date createdTimestamp;
     private Map<String, UserId> createdBy;
-    private Map<String, Double> location;
+    private Location location;
     private Map<String, Object> instanceAttributes;
 
     public InstanceBoundary(InstanceBoundary instance) {
