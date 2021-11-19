@@ -4,7 +4,6 @@ import com.example.demo.boundaries.UserBoundary;
 import com.example.demo.boundaries.UserId;
 import com.example.demo.boundaries.UserRole;
 import com.example.demo.data.UserEntity;
-import lombok.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +17,7 @@ public class UserConverter {
         return boundary;
     }
 
-    public UserId toUserIdBoundary(@NonNull String userIdString) {
+    public UserId toUserIdBoundary(String userIdString) {
         String[] values = userIdString.split(";");
         return new UserId(values[0], values[1]);
     }

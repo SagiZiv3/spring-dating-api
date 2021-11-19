@@ -1,7 +1,7 @@
 # Dating APP (Spring API)
 
 ## References:
-1. `lombok` annotation - https://medium.com/@udith.indrakantha/say-bye-bye-to-annoying-getters-setters-shorten-your-java-code-with-lombok-d656ae66e163
+1. `lombok` annotation - https://medium.com/@udith.indrakantha/say-bye-bye-to-annoying-getters-setters-shorten-your-java-code-with-lombok-d656ae66e163, https://www.baeldung.com/intro-to-project-lombok
 2. `lombok` in VS Code - https://stackoverflow.com/a/51334122
 3. `RequestMapping` and `GetMapping` - https://stackoverflow.com/a/53132931
 
