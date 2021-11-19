@@ -3,18 +3,29 @@ package com.example.demo.boundaries.converters;
 import com.example.demo.boundaries.ActivityBoundary;
 import com.example.demo.boundaries.ObjectId;
 import com.example.demo.data.ActivityEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class ActivityConverter {
+    private final IdsConverter idsConverter;
+
+    @Autowired
+    public ActivityConverter(IdsConverter idsConverter) {
+        this.idsConverter = idsConverter;
+    }
+
     public ActivityBoundary toActivityBoundary(ActivityEntity entity) {
         ActivityBoundary boundary = new ActivityBoundary();
         boundary.setType(entity.getType());
         boundary.setActivityAttributes(entity.getActivityAttributes());
-        boundary.setInstance(entity.getInstance());
-        boundary.setInvokedBy(entity.getInvokedBy());
+        boundary.setInstance(toInstanceBoundary(entity.getInstance()));
+        boundary.setInvokedBy(idsConverter.toUserIdMapBoundary(entity.getInvokedBy()));
         boundary.setCreatedTimestamp(entity.getCreatedTimestamp());
-        boundary.setActivityId(toInstanceIdBoundary(entity.getActivityId()));
+        boundary.setActivityId(idsConverter.toObjectIdBoundary(entity.getActivityId()));
         return boundary;
     }
 
@@ -22,21 +33,26 @@ public class ActivityConverter {
         ActivityEntity entity = new ActivityEntity();
         entity.setType(boundary.getType());
         entity.setActivityAttributes(boundary.getActivityAttributes());
-        entity.setInstance(boundary.getInstance());
-        entity.setInvokedBy(boundary.getInvokedBy());
+        entity.setInstance(toInstanceEntity(boundary.getInstance()));
+        entity.setInvokedBy(idsConverter.toUserIdMapEntity(boundary.getInvokedBy()));
         entity.setCreatedTimestamp(boundary.getCreatedTimestamp());
-        entity.setActivityId(toInstanceIdEntity(boundary.getActivityId()));
+        entity.setActivityId(idsConverter.toObjectIdEntity(boundary.getActivityId()));
         return entity;
     }
 
-    private String toInstanceIdEntity(ObjectId instanceId) {
-        return String.format("%s;%s", instanceId.getDomain(), instanceId.getId());
+    private Map<String, String> toInstanceEntity(Map<String, ObjectId> createdBy) {
+        // Source: https://stackoverflow.com/a/22744309
+        return createdBy.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> idsConverter.toObjectIdEntity(e.getValue())));
     }
 
-    private ObjectId toInstanceIdBoundary(String instanceId) {
-        String[] values = instanceId.split(";");
-        String domain = values[0];
-        String id = values[1];
-        return new ObjectId(domain, id);
+    private Map<String, ObjectId> toInstanceBoundary(Map<String, String> createdBy) {
+        // Source: https://stackoverflow.com/a/22744309
+        return createdBy.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> idsConverter.toObjectIdBoundary(e.getValue())));
     }
 }

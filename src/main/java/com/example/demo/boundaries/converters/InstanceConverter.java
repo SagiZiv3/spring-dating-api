@@ -2,12 +2,19 @@ package com.example.demo.boundaries.converters;
 
 import com.example.demo.boundaries.InstanceBoundary;
 import com.example.demo.boundaries.Location;
-import com.example.demo.boundaries.ObjectId;
 import com.example.demo.data.InstanceEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class InstanceConverter {
+    private final IdsConverter idsConverter;
+
+    @Autowired
+    public InstanceConverter(IdsConverter idsConverter) {
+        this.idsConverter = idsConverter;
+    }
+
     public InstanceBoundary toUserBoundary(InstanceEntity instanceEntity) {
         InstanceBoundary boundary = new InstanceBoundary();
         boundary.setName(instanceEntity.getName());
@@ -15,9 +22,9 @@ public class InstanceConverter {
         boundary.setInstanceAttributes(instanceEntity.getInstanceAttributes());
         boundary.setCreatedTimestamp(instanceEntity.getCreatedTimestamp());
         boundary.setActive(instanceEntity.isActive());
-        boundary.setCreatedBy(instanceEntity.getCreatedBy());
+        boundary.setCreatedBy(idsConverter.toUserIdMapBoundary(instanceEntity.getCreatedBy()));
         boundary.setLocation(toLocationBoundary(instanceEntity.getLocation()));
-        boundary.setInstanceId(toInstanceIdBoundary(instanceEntity.getInstanceId()));
+        boundary.setInstanceId(idsConverter.toObjectIdBoundary(instanceEntity.getInstanceId()));
         return boundary;
     }
 
@@ -31,25 +38,10 @@ public class InstanceConverter {
             entity.setActive(instanceBoundary.getActive());
         else
             entity.setActive(false);
-        entity.setCreatedBy(instanceBoundary.getCreatedBy());
+        entity.setCreatedBy(idsConverter.toUserIdMapEntity(instanceBoundary.getCreatedBy()));
         entity.setLocation(toLocationEntity(instanceBoundary.getLocation()));
-        entity.setInstanceId(toInstanceIdEntity(instanceBoundary.getInstanceId()));
+        entity.setInstanceId(idsConverter.toObjectIdEntity(instanceBoundary.getInstanceId()));
         return entity;
-    }
-
-    private String toInstanceIdEntity(ObjectId instanceId) {
-        return String.format("%s;%s", instanceId.getDomain(), instanceId.getId());
-    }
-
-    private String toLocationEntity(Location location) {
-        return String.format("%f;%f", location.getLat(), location.getLng());
-    }
-
-    private ObjectId toInstanceIdBoundary(String instanceId) {
-        String[] values = instanceId.split(";");
-        String domain = values[0];
-        String id = values[1];
-        return new ObjectId(domain, id);
     }
 
     private Location toLocationBoundary(String location) {
@@ -57,5 +49,9 @@ public class InstanceConverter {
         double lat = Double.parseDouble(values[0]);
         double lng = Double.parseDouble(values[1]);
         return new Location(lat, lng);
+    }
+
+    private String toLocationEntity(Location location) {
+        return String.format("%f;%f", location.getLat(), location.getLng());
     }
 }

@@ -1,7 +1,5 @@
 package com.example.demo.data;
 
-import com.example.demo.boundaries.ObjectId;
-import com.example.demo.boundaries.UserId;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +18,8 @@ import java.util.Map;
 public class ActivityEntity {
     private String activityId;
     private String type;
-    private Map<String, ObjectId> instance;
+    private Map<String, String> instance;
     private Date createdTimestamp;
-    private Map<String, UserId> invokedBy;
+    private Map<String, String> invokedBy;
     private Map<String, Object> activityAttributes;
 }
