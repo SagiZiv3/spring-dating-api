@@ -1,8 +1,6 @@
 package com.example.demo.controllers;
 
 import com.example.demo.boundaries.InstanceBoundary;
-import com.example.demo.boundaries.UserBoundary;
-import com.example.demo.boundaries.UserId;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping(path = "/iob/instances")
@@ -23,23 +20,23 @@ public class InstanceController {
     @PostMapping(path = "/{userDomain}/{userEmail}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public InstanceBoundary createInstance(@RequestBody InstanceBoundary newInstance,
                                            @PathVariable("userDomain") String userDomain, @PathVariable("userEmail") String userEmail) {
-        InstanceBoundary instance = new InstanceBoundary(newInstance);
-
-        HashMap<String, String> instanceId = new HashMap<>();
-        instanceId.put("domain", userDomain);
-        instanceId.put("id", Long.toString(InstanceBoundary.getId()));
-
-        UserBoundary user = new UserBoundary();
-        UserId userId = new UserId(userDomain, userEmail);
-        user.setUserId(userId);
-
-        HashMap<String, UserId> createdBy = new HashMap<>();
-        createdBy.put("createdBy", user.getUserId());
-
-        instance.setCreatedBy(createdBy);
-
-        instance.setInstanceId(instanceId);
-        return instance;
+//        InstanceBoundary instance = new InstanceBoundary(newInstance);
+//
+//        HashMap<String, String> instanceId = new HashMap<>();
+//        instanceId.put("domain", userDomain);
+//        instanceId.put("id", Long.toString(InstanceBoundary.getId()));
+//
+//        UserBoundary user = new UserBoundary();
+//        UserId userId = new UserId(userDomain, userEmail);
+//        user.setUserId(userId);
+//
+//        HashMap<String, UserId> createdBy = new HashMap<>();
+//        createdBy.put("createdBy", user.getUserId());
+//
+//        instance.setCreatedBy(createdBy);
+//
+//        instance.setInstanceId(instanceId);
+        return null;
     }
 
     //    @RequestMapping(path = "/iob/instances/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", method = RequestMethod.PUT)
