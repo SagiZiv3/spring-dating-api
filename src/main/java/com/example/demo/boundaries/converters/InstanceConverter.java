@@ -15,15 +15,15 @@ public class InstanceConverter {
         this.idsConverter = idsConverter;
     }
 
-    public InstanceBoundary toUserBoundary(InstanceEntity instanceEntity) {
+    public InstanceBoundary toInstanceBoundary(InstanceEntity instanceEntity) {
         InstanceBoundary boundary = new InstanceBoundary();
         boundary.setName(instanceEntity.getName());
         boundary.setType(instanceEntity.getType());
         boundary.setInstanceAttributes(instanceEntity.getInstanceAttributes());
         boundary.setCreatedTimestamp(instanceEntity.getCreatedTimestamp());
         boundary.setActive(instanceEntity.isActive());
-        boundary.setCreatedBy(idsConverter.toUserIdMapBoundary(instanceEntity.getCreatedBy()));
         boundary.setLocation(toLocationBoundary(instanceEntity.getLocation()));
+        boundary.setCreatedBy(idsConverter.toUserIdMapBoundary(instanceEntity.getCreatedBy()));
         boundary.setInstanceId(idsConverter.toObjectIdBoundary(instanceEntity.getInstanceId()));
         return boundary;
     }
@@ -38,8 +38,8 @@ public class InstanceConverter {
             entity.setActive(instanceBoundary.getActive());
         else
             entity.setActive(false);
-        entity.setCreatedBy(idsConverter.toUserIdMapEntity(instanceBoundary.getCreatedBy()));
         entity.setLocation(toLocationEntity(instanceBoundary.getLocation()));
+        entity.setCreatedBy(idsConverter.toUserIdMapEntity(instanceBoundary.getCreatedBy()));
         entity.setInstanceId(idsConverter.toObjectIdEntity(instanceBoundary.getInstanceId()));
         return entity;
     }
