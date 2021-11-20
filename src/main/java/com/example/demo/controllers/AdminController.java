@@ -2,6 +2,8 @@ package com.example.demo.controllers;
 
 import com.example.demo.boundaries.ActivityBoundary;
 import com.example.demo.boundaries.UserBoundary;
+import com.example.demo.logic.UsersService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,8 +15,14 @@ import java.util.List;
 
 @RestController
 public class AdminController {
+    private final UsersService usersService;
 
-//    @RequestMapping(path = "/iob/admin/users/{userDomain}/{userEmail}", method = RequestMethod.DELETE)
+    @Autowired
+    public AdminController(UsersService usersService) {
+        this.usersService = usersService;
+    }
+
+    //    @RequestMapping(path = "/iob/admin/users/{userDomain}/{userEmail}", method = RequestMethod.DELETE)
     @DeleteMapping(path = "/iob/admin/users/{userDomain}/{userEmail}")
     public void deleteAllUsers(@PathVariable("userDomain") String userDomain,
                                @PathVariable("userEmail") String userEmail) {
@@ -23,13 +31,9 @@ public class AdminController {
 
 //    @RequestMapping(path = "/iob/admin/users/{userDomain}/{userEmail}", method = RequestMethod.GET)
     @GetMapping(path = "/iob/admin/users/{userDomain}/{userEmail}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<UserBoundary> exportAllUsers(@PathVariable("userDomain") String userDomain,
-                                             @PathVariable("userEmail") String userEmail) {
-        // here should be an update of the user and returning nothing
-        UserBoundary user1 = new UserBoundary();
-        UserBoundary user2 = new UserBoundary();
-        List<UserBoundary> arr = Arrays.asList(user1, user2);
-        return arr;
+    public List<UserBoundary> exportAllUsers(@PathVariable("userDomain") String adminDomain,
+                                             @PathVariable("userEmail") String adminEmail) {
+        return usersService.getAllUsers(adminDomain, adminEmail);
     }
 
 //    @RequestMapping(path = "/iob/admin/activities/{userDomain}/{userEmail}", method = RequestMethod.GET)
