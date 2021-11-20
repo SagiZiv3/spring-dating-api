@@ -44,14 +44,16 @@ public class InstanceConverter {
         return entity;
     }
 
-    private Location toLocationBoundary(String location) {
+    public Location toLocationBoundary(String location) {
+        if (location == null) return null;
         String[] values = location.split(";");
         double lat = Double.parseDouble(values[0]);
         double lng = Double.parseDouble(values[1]);
         return new Location(lat, lng);
     }
 
-    private String toLocationEntity(Location location) {
+    public String toLocationEntity(Location location) {
+        if (location == null) return null;
         return String.format("%f;%f", location.getLat(), location.getLng());
     }
 }

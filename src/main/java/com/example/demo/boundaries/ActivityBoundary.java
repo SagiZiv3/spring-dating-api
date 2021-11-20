@@ -16,7 +16,6 @@ import java.util.Map;
 @AllArgsConstructor
 @ToString
 public class ActivityBoundary {
-    private static long id;
     private ObjectId activityId;
     private String type;
     private Map<String, ObjectId> instance;

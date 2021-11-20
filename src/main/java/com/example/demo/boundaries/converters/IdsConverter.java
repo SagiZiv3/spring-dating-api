@@ -27,6 +27,7 @@ public class IdsConverter {
     }
 
     public ObjectId toObjectIdBoundary(String instanceId) {
+        if (instanceId == null) return null;
         String[] values = instanceId.split(";");
         String domain = values[0];
         String id = values[1];
@@ -34,10 +35,12 @@ public class IdsConverter {
     }
 
     public String toObjectIdEntity(ObjectId instanceId) {
+        if (instanceId == null) return null;
         return String.format("%s;%s", instanceId.getDomain(), instanceId.getId());
     }
 
     public UserId toUserIdBoundary(String userId) {
+        if (userId == null) return null;
         String[] values = userId.split(";");
         String domain = values[0];
         String email = values[1];
@@ -45,6 +48,7 @@ public class IdsConverter {
     }
 
     public String toUserIdEntity(UserId userId) {
+        if (userId == null) return null;
         return String.format("%s;%s", userId.getDomain(), userId.getEmail());
     }
 }

@@ -3,6 +3,7 @@ package com.example.demo.boundaries.converters;
 import com.example.demo.boundaries.ActivityBoundary;
 import com.example.demo.boundaries.ObjectId;
 import com.example.demo.data.ActivityEntity;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ public class ActivityConverter {
         this.idsConverter = idsConverter;
     }
 
-    public ActivityBoundary toActivityBoundary(ActivityEntity entity) {
+    public ActivityBoundary toActivityBoundary(@NonNull ActivityEntity entity) {
         ActivityBoundary boundary = new ActivityBoundary();
         boundary.setType(entity.getType());
         boundary.setActivityAttributes(entity.getActivityAttributes());
