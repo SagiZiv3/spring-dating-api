@@ -24,7 +24,7 @@ public class InstanceConverter {
         boundary.setType(instanceEntity.getType());
         boundary.setInstanceAttributes(instanceEntity.getInstanceAttributes());
         boundary.setCreatedTimestamp(instanceEntity.getCreatedTimestamp());
-        boundary.setActive(instanceEntity.isActive());
+        boundary.setActive(instanceEntity.getActive());
         boundary.setLocation(toLocationBoundary(instanceEntity.getLocation()));
         boundary.setCreatedBy(idsConverter.toUserIdMapBoundary(instanceEntity.getCreatedBy()));
         boundary.setInstanceId(idsConverter.toObjectIdBoundary(instanceEntity.getInstanceId()));

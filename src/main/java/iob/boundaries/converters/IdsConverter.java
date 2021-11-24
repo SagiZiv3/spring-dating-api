@@ -21,6 +21,7 @@ public class IdsConverter {
     }
 
     public InitiatedBy toUserIdMapBoundary(Map<String, String> createdBy) {
+        if (createdBy == null) return null;
         String[] parameters = createdBy.get("userId").split(delimiter);
         return new InitiatedBy(new UserId(parameters[0], parameters[1]));
     }

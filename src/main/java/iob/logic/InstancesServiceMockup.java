@@ -8,7 +8,6 @@ import iob.boundaries.helpers.UserId;
 import iob.data.InstanceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
@@ -19,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-@Service
+//@Service
 public class InstancesServiceMockup implements InstancesService {
     private final InstanceConverter instanceConverter;
     private Map<String, InstanceEntity> storage;
@@ -50,8 +49,8 @@ public class InstancesServiceMockup implements InstancesService {
 
     @Override
     public InstanceBoundary updateInstance(String userDomain, String userEmail, String instanceDomain, String instanceId, InstanceBoundary update) {
-        if (storage.containsKey((userDomain + userEmail))) {
-            throw new RuntimeException("Couldn't find instance for user with email " + userEmail + " in domain " + userDomain);
+        if (!storage.containsKey((instanceDomain + instanceId))) {
+            throw new RuntimeException("Couldn't find instance for user with id " + instanceId + " in domain " + instanceDomain);
         }
         InstanceEntity entity = storage.get(instanceDomain + instanceId);
         boolean isDirty = false;
@@ -86,9 +85,6 @@ public class InstancesServiceMockup implements InstancesService {
 
     @Override
     public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
-        if (storage.containsKey((userDomain + userEmail))) {
-            throw new RuntimeException("Couldn't find instance for user with email " + userEmail + " in domain " + userDomain);
-        }
         return storage.values()
                 .stream()
                 .map(instanceConverter::toInstanceBoundary)
@@ -97,17 +93,17 @@ public class InstancesServiceMockup implements InstancesService {
 
     @Override
     public InstanceBoundary getSpecificInstance(String userDomain, String userEmail, String instanceDomain, String instanceId) {
-        if (!storage.containsKey((userDomain + userEmail))) {
-            throw new RuntimeException("Couldn't find instance for user with email " + userEmail + " in domain " + userDomain);
+        if (!storage.containsKey((instanceDomain + instanceId))) {
+            throw new RuntimeException("Couldn't find instance for user with id " + instanceId + " in domain " + instanceDomain);
         }
         return instanceConverter.toInstanceBoundary(storage.get(instanceDomain + instanceId));
     }
 
     @Override
     public void deleteAllInstances(String adminDomain, String adminEmail) {
-        if (storage.containsKey((adminDomain + adminEmail))) {
-            return;
-        }
+//        if (storage.containsKey((adminDomain + adminEmail))) {
+//            return;
+//        }
         storage.clear();
     }
 }
