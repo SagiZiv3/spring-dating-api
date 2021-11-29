@@ -2,6 +2,7 @@ package iob.boundaries.converters;
 
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.Location;
+import iob.boundaries.helpers.ObjectId;
 import iob.data.InstanceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,7 @@ public class InstanceConverter {
         boundary.setActive(instanceEntity.getActive());
         boundary.setLocation(toLocationBoundary(instanceEntity.getLocation()));
         boundary.setCreatedBy(idsConverter.toUserIdMapBoundary(instanceEntity.getCreatedBy()));
-        boundary.setInstanceId(idsConverter.toObjectIdBoundary(instanceEntity.getInstanceId()));
+        boundary.setInstanceId(new ObjectId(instanceEntity.getDomain(), Long.toString(instanceEntity.getId())));
         return boundary;
     }
 
@@ -43,7 +44,12 @@ public class InstanceConverter {
             entity.setActive(false);
         entity.setLocation(toLocationEntity(instanceBoundary.getLocation()));
         entity.setCreatedBy(idsConverter.toUserIdMapEntity(instanceBoundary.getCreatedBy()));
-        entity.setInstanceId(idsConverter.toObjectIdEntity(instanceBoundary.getInstanceId()));
+
+        if (instanceBoundary.getInstanceId() != null) {
+            entity.setDomain(instanceBoundary.getInstanceId().getDomain());
+            entity.setId(Long.parseLong(instanceBoundary.getInstanceId().getId()));
+        }
+//        entity.setInstanceId(idsConverter.toObjectIdEntity(instanceBoundary.getInstanceId()));
         return entity;
     }
 

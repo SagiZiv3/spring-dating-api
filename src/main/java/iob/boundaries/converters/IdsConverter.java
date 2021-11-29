@@ -3,6 +3,7 @@ package iob.boundaries.converters;
 import iob.boundaries.helpers.InitiatedBy;
 import iob.boundaries.helpers.ObjectId;
 import iob.boundaries.helpers.UserId;
+import iob.data.InstancePrimaryKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -26,12 +27,9 @@ public class IdsConverter {
         return new InitiatedBy(new UserId(parameters[0], parameters[1]));
     }
 
-    public ObjectId toObjectIdBoundary(String instanceId) {
+    public ObjectId toObjectIdBoundary(InstancePrimaryKey instanceId) {
         if (instanceId == null) return null;
-        String[] values = instanceId.split(delimiter);
-        String domain = values[0];
-        String id = values[1];
-        return new ObjectId(domain, id);
+        return new ObjectId(instanceId.getDomain(), Long.toString(instanceId.getId()));
     }
 
     public String toObjectIdEntity(ObjectId instanceId) {

@@ -30,7 +30,7 @@ public class ActivityConverter {
         boundary.setInstance(toInstanceBoundary(entity.getInstance()));
         boundary.setInvokedBy(idsConverter.toUserIdMapBoundary(entity.getInvokedBy()));
         boundary.setCreatedTimestamp(entity.getCreatedTimestamp());
-        boundary.setActivityId(idsConverter.toObjectIdBoundary(entity.getActivityId()));
+//        boundary.setActivityId(idsConverter.toObjectIdBoundary(entity.getActivityId()));
         return boundary;
     }
 
