@@ -37,9 +37,9 @@ import java.util.Set;
 @IdClass(InstancePrimaryKey.class)
 public class InstanceEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "INSTANCES_INDEX")
-    @SequenceGenerator(name = "INSTANCES_INDEX", sequenceName = "INSTANCES_SEQUENCE", allocationSize = 1)
-    private long id = 0;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "INSTANCES_SEQUENCE")
+    @SequenceGenerator(name = "INSTANCES_SEQUENCE", sequenceName = "INSTANCES_SEQUENCE", allocationSize = 1)
+    private long id;
     @Id
     private String domain;
     private String type;
