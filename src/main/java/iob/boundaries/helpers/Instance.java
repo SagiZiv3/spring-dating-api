@@ -12,5 +12,5 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class Instance {
-    public ObjectId instanceId;
+    private ObjectId instanceId;
 }

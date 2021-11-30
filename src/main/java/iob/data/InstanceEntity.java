@@ -16,6 +16,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -57,7 +58,8 @@ public class InstanceEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdTimestamp;
     private LocationEntity location;
-    private CreatedByEntity createdBy;
+    @OneToOne(fetch = FetchType.LAZY)
+    private UserEntity createdBy;
     @Lob
     @Convert(converter = MapToStringConverter.class)
     private Map<String, Object> instanceAttributes;
