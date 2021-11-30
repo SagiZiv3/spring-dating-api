@@ -3,8 +3,8 @@ package iob.boundaries.converters;
 import iob.boundaries.helpers.InitiatedBy;
 import iob.boundaries.helpers.ObjectId;
 import iob.boundaries.helpers.UserId;
-import iob.data.CreatedByEntity;
 import iob.data.InstancePrimaryKey;
+import iob.data.UserEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +13,16 @@ public class IdsConverter {
     @Value("${application.entity.delimiter}")
     private String delimiter;
 
-    public CreatedByEntity toUserIdMapEntity(InitiatedBy createdBy) {
-        return new CreatedByEntity(createdBy.getUserId().getDomain(), createdBy.getUserId().getEmail());
+    public UserEntity toUserIdMapEntity(InitiatedBy createdBy) {
+        UserEntity entity = new UserEntity();
+        entity.setId(createdBy.getUserId().getDomain() + delimiter + createdBy.getUserId().getEmail());
+        return entity;
     }
 
-    public InitiatedBy toUserIdMapBoundary(CreatedByEntity createdBy) {
-        return new InitiatedBy(new UserId(createdBy.getCreatedByUserDomain(), createdBy.getCreatedByUserEmail()));
+    public InitiatedBy toUserIdMapBoundary(UserEntity createdBy) {
+        String id = createdBy.getId();
+        String[] values = id.split(delimiter);
+        return new InitiatedBy(new UserId(values[0], values[1]));
     }
 
     public ObjectId toObjectIdBoundary(InstancePrimaryKey instanceId) {

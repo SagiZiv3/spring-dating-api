@@ -1,63 +1,57 @@
-package iob.logic.mockups;
+package iob.logic.db;
 
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.converters.ActivityConverter;
-import iob.boundaries.helpers.ObjectId;
 import iob.data.ActivityEntity;
 import iob.logic.ActivitiesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-//@Service
-public class ActivitiesServiceMockup implements ActivitiesService {
+@Service
+public class ActivitiesServiceJPA implements ActivitiesService {
     private final ActivityConverter activityConverter;
-    private Map<String, ActivityEntity> storage;
+    private final ActivitiesDao activitiesDao;
     @Value("${spring.application.name:dummy}")
     private String domainName;
-    private AtomicLong atomicLong;
 
     @Autowired
-    public ActivitiesServiceMockup(ActivityConverter activityConverter) {
+    public ActivitiesServiceJPA(ActivityConverter activityConverter, ActivitiesDao activitiesDao) {
         this.activityConverter = activityConverter;
-    }
-
-
-    @PostConstruct
-    private void init() {
-        storage = Collections.synchronizedMap(new HashMap<>());
-        atomicLong = new AtomicLong(1L);
+        this.activitiesDao = activitiesDao;
     }
 
     @Override
     public Object invokeActivity(ActivityBoundary activity) {
-        activity.setActivityId(new ObjectId(domainName, atomicLong.getAndIncrement() + ""));
-        activity.setCreatedTimestamp(new Date());
+        System.out.println("INVOKE");
         ActivityEntity entity = activityConverter.toActivityEntity(activity);
+        System.out.println(entity);
+        entity.setCreatedTimestamp(new Date());
+        entity.setDomain(domainName);
+        System.out.println("A  " + entity);
 
-//        storage.putIfAbsent(entity.getActivityId(), entity);
+        entity = activitiesDao.save(entity);
+        System.out.println("B  " + entity);
 
         return activityConverter.toActivityBoundary(entity);
     }
 
     @Override
     public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
-        return storage.values()
-                .stream()
-                .map(activityConverter::toActivityBoundary)
+        return StreamSupport.stream(
+                        activitiesDao.findAll()
+                                .spliterator(), false
+                ).map(this.activityConverter::toActivityBoundary)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteAllActivities(String adminDomain, String adminEmail) {
-        storage.clear();
+        activitiesDao.deleteAll();
     }
 }

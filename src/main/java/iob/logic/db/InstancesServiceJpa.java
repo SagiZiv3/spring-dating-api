@@ -1,8 +1,10 @@
 package iob.logic.db;
 
 import iob.boundaries.InstanceBoundary;
+import iob.boundaries.converters.IdsConverter;
 import iob.boundaries.converters.InstanceConverter;
-import iob.data.CreatedByEntity;
+import iob.boundaries.helpers.InitiatedBy;
+import iob.boundaries.helpers.UserId;
 import iob.data.InstanceEntity;
 import iob.data.InstancePrimaryKey;
 import iob.logic.InstanceWIthBindingsService;
@@ -22,11 +24,14 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
     private String domainName;
     private final InstanceDao instanceDao;
     private final InstanceConverter instanceConverter;
+    private final IdsConverter idsConverter;
+
 
     @Autowired
-    public InstancesServiceJpa(InstanceDao instanceDao, InstanceConverter converter) {
+    public InstancesServiceJpa(InstanceDao instanceDao, InstanceConverter converter, IdsConverter idsConverter) {
         this.instanceDao = instanceDao;
         this.instanceConverter = converter;
+        this.idsConverter = idsConverter;
     }
 
     @Override
@@ -35,7 +40,7 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
         InstanceEntity entityToStore = instanceConverter.toInstanceEntity(instance);
         entityToStore.setCreatedTimestamp(new Date());
         entityToStore.setDomain(domainName);
-        entityToStore.setCreatedBy(new CreatedByEntity(userDomain, userEmail));
+        entityToStore.setCreatedBy(idsConverter.toUserIdMapEntity(new InitiatedBy(new UserId(userDomain, userEmail))));
 
         if (instance.getName() == null || instance.getName().isEmpty() ||
                 instance.getType() == null || instance.getType().isEmpty())
