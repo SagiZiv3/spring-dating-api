@@ -4,14 +4,12 @@ import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.Location;
 import iob.boundaries.helpers.ObjectId;
 import iob.data.InstanceEntity;
+import iob.data.LocationEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class InstanceConverter {
-    @Value("${application.entity.delimiter}")
-    private String delimiter;
     private final IdsConverter idsConverter;
 
     @Autowired
@@ -49,20 +47,16 @@ public class InstanceConverter {
             entity.setDomain(instanceBoundary.getInstanceId().getDomain());
             entity.setId(Long.parseLong(instanceBoundary.getInstanceId().getId()));
         }
-//        entity.setInstanceId(idsConverter.toObjectIdEntity(instanceBoundary.getInstanceId()));
         return entity;
     }
 
-    public Location toLocationBoundary(String location) {
+    public Location toLocationBoundary(LocationEntity location) {
         if (location == null) return null;
-        String[] values = location.split(delimiter);
-        double lat = Double.parseDouble(values[0]);
-        double lng = Double.parseDouble(values[1]);
-        return new Location(lat, lng);
+        return new Location(location.getLocationLat(), location.getLocationLng());
     }
 
-    public String toLocationEntity(Location location) {
+    public LocationEntity toLocationEntity(Location location) {
         if (location == null) return null;
-        return String.format("%f%s%f", location.getLat(), delimiter, location.getLng());
+        return new LocationEntity(location.getLat(), location.getLng());
     }
 }

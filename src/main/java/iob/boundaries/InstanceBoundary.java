@@ -27,16 +27,4 @@ public class InstanceBoundary {
     private InitiatedBy createdBy;
     private Location location;
     private Map<String, Object> instanceAttributes;
-
-    public InstanceBoundary(InstanceBoundary instance) {
-        setActive(instance.active);
-        setInstanceAttributes(instance.instanceAttributes);
-        setInstanceId(instance.instanceId);
-        setCreatedBy(instance.createdBy);
-        setLocation(instance.location);
-        setCreatedTimestamp(instance.createdTimestamp);
-        setType(instance.type);
-        setName(instance.name);
-    }
-
 }

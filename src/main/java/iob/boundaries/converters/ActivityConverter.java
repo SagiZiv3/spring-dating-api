@@ -28,7 +28,7 @@ public class ActivityConverter {
         boundary.setType(entity.getType());
         boundary.setActivityAttributes(entity.getActivityAttributes());
         boundary.setInstance(toInstanceBoundary(entity.getInstance()));
-        boundary.setInvokedBy(idsConverter.toUserIdMapBoundary(entity.getInvokedBy()));
+//        boundary.setInvokedBy(idsConverter.toUserIdMapBoundary(entity.getInvokedBy())); TODO
         boundary.setCreatedTimestamp(entity.getCreatedTimestamp());
 //        boundary.setActivityId(idsConverter.toObjectIdBoundary(entity.getActivityId()));
         return boundary;
@@ -39,7 +39,7 @@ public class ActivityConverter {
         entity.setType(boundary.getType());
         entity.setActivityAttributes(boundary.getActivityAttributes());
         entity.setInstance(toInstanceEntity(boundary.getInstance()));
-        entity.setInvokedBy(idsConverter.toUserIdMapEntity(boundary.getInvokedBy()));
+//        entity.setInvokedBy(idsConverter.toUserIdMapEntity(boundary.getInvokedBy())); TODO
         entity.setCreatedTimestamp(boundary.getCreatedTimestamp());
         entity.setActivityId(idsConverter.toObjectIdEntity(boundary.getActivityId()));
         return entity;
