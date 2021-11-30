@@ -1,9 +1,10 @@
-package iob.logic;
+package iob.logic.mockups;
 
 import iob.boundaries.ActivityBoundary;
-import iob.boundaries.helpers.ObjectId;
 import iob.boundaries.converters.ActivityConverter;
+import iob.boundaries.helpers.ObjectId;
 import iob.data.ActivityEntity;
+import iob.logic.ActivitiesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class ActivitiesServiceMockup implements ActivitiesService {
         activity.setCreatedTimestamp(new Date());
         ActivityEntity entity = activityConverter.toActivityEntity(activity);
 
-        storage.putIfAbsent(entity.getActivityId(), entity);
+//        storage.putIfAbsent(entity.getActivityId(), entity);
 
         return activityConverter.toActivityBoundary(entity);
     }

@@ -1,4 +1,4 @@
-package iob.logic;
+package iob.logic.mockups;
 
 import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.IdsConverter;
@@ -6,6 +6,7 @@ import iob.boundaries.converters.UserConverter;
 import iob.boundaries.helpers.UserId;
 import iob.boundaries.helpers.UserRole;
 import iob.data.UserEntity;
+import iob.logic.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
