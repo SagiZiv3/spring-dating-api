@@ -78,6 +78,7 @@ public class UsersServiceJpa implements UsersService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail) {
         checkIfAdmin(adminDomain, adminEmail);
         return StreamSupport
@@ -89,6 +90,7 @@ public class UsersServiceJpa implements UsersService {
     }
 
     @Override
+    @Transactional
     public void deleteAllUsers(String adminDomain, String adminEmail) {
         checkIfAdmin(adminDomain, adminEmail);
         usersDao.deleteAll();
