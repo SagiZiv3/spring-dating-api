@@ -2,8 +2,7 @@ package iob.logic.db;
 
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.InstanceConverter;
-import iob.boundaries.helpers.InitiatedBy;
-import iob.boundaries.helpers.UserId;
+import iob.data.CreatedByEntity;
 import iob.data.InstanceEntity;
 import iob.data.InstancePrimaryKey;
 import iob.logic.InstanceWIthBindingsService;
@@ -33,12 +32,15 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Override
     @Transactional
     public InstanceBoundary createInstance(String userDomain, String userEmail, InstanceBoundary instance) {
-        instance.setCreatedBy(new InitiatedBy(new UserId(userDomain, userEmail)));
         InstanceEntity entityToStore = instanceConverter.toInstanceEntity(instance);
         entityToStore.setCreatedTimestamp(new Date());
         entityToStore.setDomain(domainName);
-//        if (instance.getName().isEmpty() || instance.getType().isEmpty())
-//            throw new RuntimeException("Invalid values! name and type can't be null");
+        entityToStore.setCreatedBy(new CreatedByEntity(userDomain, userEmail));
+
+        if (instance.getName() == null || instance.getName().isEmpty() ||
+                instance.getType() == null || instance.getType().isEmpty())
+            throw new RuntimeException("Invalid values! name and type can't be null");
+
         System.out.println(entityToStore);
         entityToStore = instanceDao.save(entityToStore);
         System.out.println(entityToStore);
@@ -64,10 +66,10 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
         if (update.getLocation() != null) {
             existing.setLocation(instanceConverter.toLocationEntity(update.getLocation()));
         }
-        if (update.getName() != null) {
+        if (update.getName() != null && !update.getName().isEmpty()) {
             existing.setName(update.getName());
         }
-        if (update.getType() != null) {
+        if (update.getType() != null && !update.getType().isEmpty()) {
             existing.setType(update.getType());
         }
 
