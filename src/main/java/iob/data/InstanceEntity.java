@@ -1,10 +1,9 @@
 package iob.data;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -23,6 +22,7 @@ import javax.persistence.Transient;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -38,9 +38,10 @@ public class InstanceEntity {
     // The index would be generated from a sequence named "INSTANCES_SEQUENCE"
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "INSTANCES_SEQUENCE")
     // Here we create that sequence, and define it to be updated every insertion (allocationSize = 1).
-    @SequenceGenerator(name = "INSTANCES_SEQUENCE", sequenceName = "INSTANCES_SEQUENCE", allocationSize = 1)
+    @SequenceGenerator(name = "INSTANCES_SEQUENCE", sequenceName = "INSTANCES_SEQUENCE", allocationSize = 10)
     private long id;
     @Id
+    @NonNull
     private String domain;
     //</editor-fold>
 
@@ -48,7 +49,6 @@ public class InstanceEntity {
     private String type;
     private String name;
     // Cancel the default getter, because it is prefixed with "is" instead of "get"
-    @Getter(AccessLevel.NONE)
     private boolean active;
     // Define that we save the data and the time
     @Temporal(TemporalType.TIMESTAMP)
@@ -56,6 +56,8 @@ public class InstanceEntity {
     private LocationEntity location;
     private CreatedByEntity createdBy;
     // TODO: Add the conversion to CLOB
+//    @Lob
+//    @Convert(converter = MapToJson.class)
     @Transient
     private Map<String, Object> instanceAttributes;
     //</editor-fold>
@@ -81,5 +83,30 @@ public class InstanceEntity {
 
     public boolean getActive() {
         return this.active;
+    }
+
+    public void addParent(InstanceEntity parent) {
+        if (this.equals(parent))
+            throw new RuntimeException("Cannot assign parent to himself");
+        parentInstances.add(parent);
+    }
+
+    public void addChild(InstanceEntity child) {
+        if (this.equals(child))
+            throw new RuntimeException("Cannot assign child to himself");
+        childInstances.add(child);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, domain);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InstanceEntity entity = (InstanceEntity) o;
+        return id == entity.id && domain.equals(entity.domain);
     }
 }

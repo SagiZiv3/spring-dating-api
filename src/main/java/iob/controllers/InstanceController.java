@@ -1,7 +1,8 @@
 package iob.controllers;
 
 import iob.boundaries.InstanceBoundary;
-import iob.logic.InstancesService;
+import iob.boundaries.helpers.ObjectId;
+import iob.logic.InstanceWIthBindingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,10 +18,10 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/iob/instances")
 public class InstanceController {
-    private final InstancesService instancesService;
+    private final InstanceWIthBindingsService instancesService;
 
     @Autowired
-    public InstanceController(InstancesService instancesService) {
+    public InstanceController(InstanceWIthBindingsService instancesService) {
         this.instancesService = instancesService;
     }
 
@@ -37,6 +38,14 @@ public class InstanceController {
         instancesService.updateInstance(userDomain, useEmail, instanceDomain, instanceId, update);
     }
 
+    @PutMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children")
+    public void bindToChild(
+            @RequestBody ObjectId childInstanceId, @PathVariable("userDomain") String userDomain,
+            @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String parentInstanceDomain,
+            @PathVariable("instanceId") String parentInstanceId) {
+        instancesService.bindToParent(parentInstanceId, parentInstanceDomain, childInstanceId.getId(), childInstanceId.getDomain());
+    }
+
     @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public InstanceBoundary retrieveInstance(@PathVariable("userDomain") String userDomain,
                                              @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String instanceDomain,
@@ -49,6 +58,22 @@ public class InstanceController {
     public List<InstanceBoundary> getAllInstances(@PathVariable("userDomain") String userDomain,
                                                   @PathVariable("userEmail") String userEmail) {
         return instancesService.getAllInstances(userDomain, userEmail);
+
+    }
+
+    @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<InstanceBoundary> getAllInstanceChildren(@PathVariable("userDomain") String userDomain,
+                                                         @PathVariable("userEmail") String userEmail,
+                                                         @PathVariable String instanceDomain, @PathVariable String instanceId) {
+        return instancesService.getChildren(instanceId, instanceDomain);
+
+    }
+
+    @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/parents", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<InstanceBoundary> getAllInstanceParents(@PathVariable("userDomain") String userDomain,
+                                                        @PathVariable("userEmail") String userEmail,
+                                                        @PathVariable String instanceDomain, @PathVariable String instanceId) {
+        return instancesService.getParents(instanceId, instanceDomain);
 
     }
 

@@ -6,7 +6,7 @@ import iob.boundaries.helpers.InitiatedBy;
 import iob.boundaries.helpers.UserId;
 import iob.data.InstanceEntity;
 import iob.data.InstancePrimaryKey;
-import iob.logic.InstancesService;
+import iob.logic.InstanceWIthBindingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
-public class InstancesServiceJpa implements InstancesService {
+public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Value("${spring.application.name:dummy}")
     private String domainName;
     private final InstanceDao instanceDao;
@@ -31,13 +31,17 @@ public class InstancesServiceJpa implements InstancesService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public InstanceBoundary createInstance(String userDomain, String userEmail, InstanceBoundary instance) {
         instance.setCreatedBy(new InitiatedBy(new UserId(userDomain, userEmail)));
         InstanceEntity entityToStore = instanceConverter.toInstanceEntity(instance);
         entityToStore.setCreatedTimestamp(new Date());
         entityToStore.setDomain(domainName);
+//        if (instance.getName().isEmpty() || instance.getType().isEmpty())
+//            throw new RuntimeException("Invalid values! name and type can't be null");
+        System.out.println(entityToStore);
         entityToStore = instanceDao.save(entityToStore);
+        System.out.println(entityToStore);
         return instanceConverter.toInstanceBoundary(entityToStore);
     }
 
@@ -96,5 +100,45 @@ public class InstancesServiceJpa implements InstancesService {
     @Transactional
     public void deleteAllInstances(String adminDomain, String adminEmail) {
         instanceDao.deleteAll();
+    }
+
+    @Override
+    @Transactional
+    public void bindToParent(String parentId, String parentDomain, String childId, String childDomain) {
+        InstanceEntity parent = this.instanceDao
+                .findById(new InstancePrimaryKey(Long.parseLong(parentId), parentDomain))
+                .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + parentId + " in domain " + parentDomain));
+
+        InstanceEntity child = this.instanceDao
+                .findById(new InstancePrimaryKey(Long.parseLong(childId), childDomain))
+                .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + childId + " in domain " + childDomain));
+
+        parent.addChild(child);
+        child.addParent(parent);
+        instanceDao.save(parent);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InstanceBoundary> getParents(String childId, String childDomain) {
+        InstanceEntity child = this.instanceDao
+                .findById(new InstancePrimaryKey(Long.parseLong(childId), childDomain))
+                .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + childId + " in domain " + childDomain));
+
+        return child.getParentInstances().stream()
+                .map(this.instanceConverter::toInstanceBoundary)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InstanceBoundary> getChildren(String parentId, String parentDomain) {
+        InstanceEntity parent = this.instanceDao
+                .findById(new InstancePrimaryKey(Long.parseLong(parentId), parentDomain))
+                .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + parentId + " in domain " + parentDomain));
+
+        return parent.getChildInstances().stream()
+                .map(this.instanceConverter::toInstanceBoundary)
+                .collect(Collectors.toList());
     }
 }
