@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -13,12 +14,12 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.persistence.Transient;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class InstanceEntity {
     // The index would be generated from a sequence named "INSTANCES_SEQUENCE"
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "INSTANCES_SEQUENCE")
     // Here we create that sequence, and define it to be updated every insertion (allocationSize = 1).
-    @SequenceGenerator(name = "INSTANCES_SEQUENCE", sequenceName = "INSTANCES_SEQUENCE", allocationSize = 10)
+    @SequenceGenerator(name = "INSTANCES_SEQUENCE", sequenceName = "INSTANCES_SEQUENCE", allocationSize = 1)
     private long id;
     @Id
     @NonNull
@@ -57,10 +58,8 @@ public class InstanceEntity {
     private Date createdTimestamp;
     private LocationEntity location;
     private CreatedByEntity createdBy;
-    // TODO: Add the conversion to CLOB
-//    @Lob
-//    @Convert(converter = MapToJson.class)
-    @Transient
+    @Lob
+    @Convert(converter = MapToStringConverter.class)
     private Map<String, Object> instanceAttributes;
     //</editor-fold>
 
