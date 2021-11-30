@@ -41,9 +41,8 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
                 instance.getType() == null || instance.getType().isEmpty())
             throw new RuntimeException("Invalid values! name and type can't be null");
 
-        System.out.println(entityToStore);
         entityToStore = instanceDao.save(entityToStore);
-        System.out.println(entityToStore);
+
         return instanceConverter.toInstanceBoundary(entityToStore);
     }
 

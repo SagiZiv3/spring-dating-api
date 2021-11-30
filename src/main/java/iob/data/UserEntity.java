@@ -2,19 +2,25 @@ package iob.data;
 
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.NonNull;
 
-@Getter
-@Setter
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@Entity
+@Table(name = "USERS")
 public class UserEntity {
+    @Id
+    @NonNull
     private String id;
     private String role;
+    @NonNull
     private String username;
     private String avatar;
 }

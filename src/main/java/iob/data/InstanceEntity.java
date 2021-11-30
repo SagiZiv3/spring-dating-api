@@ -46,7 +46,9 @@ public class InstanceEntity {
     //</editor-fold>
 
     //<editor-fold desc="Entity's attributes">
+    @NonNull
     private String type;
+    @NonNull
     private String name;
     // Cancel the default getter, because it is prefixed with "is" instead of "get"
     private boolean active;

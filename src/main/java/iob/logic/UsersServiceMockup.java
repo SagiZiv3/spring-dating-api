@@ -1,13 +1,12 @@
 package iob.logic;
 
 import iob.boundaries.UserBoundary;
-import iob.boundaries.helpers.UserId;
-import iob.boundaries.helpers.UserRole;
 import iob.boundaries.converters.IdsConverter;
 import iob.boundaries.converters.UserConverter;
+import iob.boundaries.helpers.UserId;
+import iob.boundaries.helpers.UserRole;
 import iob.data.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Service
+//@Service
 public class UsersServiceMockup implements UsersService {
     private final UserConverter userConverter;
     private final IdsConverter idsConverter;
