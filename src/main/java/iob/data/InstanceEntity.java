@@ -60,7 +60,7 @@ public class InstanceEntity {
     // Define that we save the data and the time
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdTimestamp;
-    private LocationEntity location;
+    private LocationEntity location = new LocationEntity();
     @OneToOne(fetch = FetchType.LAZY)
     private UserEntity createdBy;
     @Lob

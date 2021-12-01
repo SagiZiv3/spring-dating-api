@@ -2,11 +2,15 @@ package iob.logic.db;
 
 import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.UserConverter;
-import iob.boundaries.helpers.UserRoleBoundary;
 import iob.data.UserEntity;
 import iob.data.UserRole;
 import iob.logic.UsersService;
 import iob.logic.db.Daos.UsersDao;
+import iob.logic.exceptions.InvalidInputException;
+import iob.logic.exceptions.user.UserExistsException;
+import iob.logic.exceptions.user.UserNotFoundException;
+import iob.logic.exceptions.user.UserPermissionException;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,15 +33,12 @@ public class UsersServiceJpa implements UsersService {
     @Override
     @Transactional
     public UserBoundary createUser(UserBoundary user) {
+        validateUser(user);
         UserEntity entityToStore = this.userConverter.toEntity(user);
-        if (!validateEmail(user.getUserId().getEmail())) {
-            throw new RuntimeException("Invalid email " + user.getUserId().getEmail());
-        }
 
-        // First make sure the user doesn't exist already.
+        // Make sure the user doesn't already exist.
         if (usersDao.existsById(userConverter.toUserPrimaryKey(entityToStore.getEmail(), entityToStore.getDomain()))) {
-            throw new RuntimeException("User already exists with email " + user.getUserId().getEmail() +
-                    " in domain " + user.getUserId().getDomain());
+            throw new UserExistsException(entityToStore.getDomain(), entityToStore.getEmail());
         }
 
         entityToStore = usersDao.save(entityToStore);
@@ -93,19 +94,63 @@ public class UsersServiceJpa implements UsersService {
         usersDao.deleteAll();
     }
 
-    private void checkIfAdmin(String adminDomain, String adminEmail) {
-        UserEntity userEntity = usersDao.findById(userConverter.toUserPrimaryKey(adminDomain, adminEmail))
-                .orElseThrow(() -> new RuntimeException("No user with email " + adminEmail + " in domain " + adminDomain));
-        UserBoundary boundary = userConverter.toBoundary(userEntity);
-        if (boundary.getRole() != UserRoleBoundary.ADMIN) {
-            throw new RuntimeException("The user with email " + adminEmail + " in domain " + adminDomain + " is not an Admin");
+    /**
+     * Checks if all the fields in the given user are valid (non-empty and not null).<br/>
+     * If one of the fields is invalid, an {@link InvalidInputException} would be thrown.
+     *
+     * @param userBoundary - The user boundary to validate.
+     */
+    private void validateUser(@NonNull UserBoundary userBoundary) {
+        // Make sure the given email is valid
+        if (!validateEmail(userBoundary.getUserId().getEmail())) {
+            throw new InvalidInputException("email", userBoundary.getUserId().getEmail());
+        }
+        if (userBoundary.getUsername() == null || userBoundary.getUsername().isEmpty()) {
+            throw new InvalidInputException("username", userBoundary.getUsername());
+        }
+        if (userBoundary.getAvatar() == null || userBoundary.getAvatar().isEmpty()) {
+            throw new InvalidInputException("avatar", userBoundary.getAvatar());
         }
     }
 
-    private boolean validateEmail(String email) {
-        // Source: https://www.baeldung.com/java-email-validation-regex#:~:text=The%20simplest%20regular%20expression%20to,otherwise%2C%20the%20result%20is%20false.
+    /**
+     * Checks if the given email address is valid<br/>
+     * Source: https://www.baeldung.com/java-email-validation-regex#:~:text=The%20simplest%20regular%20expression%20to,otherwise%2C%20the%20result%20is%20false.
+     *
+     * @param email - The email address to validate.
+     * @return `true` if the email is valid, `false` otherwise.
+     */
+    private boolean validateEmail(@NonNull String email) {
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9\\+_-]+(\\.[A-Za-z0-9\\+_-]+)*@"
                 + "[^-][A-Za-z0-9\\+-]+(\\.[A-Za-z0-9\\+-]+)*(\\.[A-Za-z]{2,})$";
         return email.matches(regexPattern);
+    }
+
+    /**
+     * Finds the user in the storage and checks if his role is defined as {@link UserRole#ADMIN}.<br/>
+     * If the user is not an admin, a {@link UserPermissionException} would be thrown.
+     *
+     * @param domain - The domain in which the user exists.
+     * @param email  - The user's email address.
+     */
+    private void checkIfAdmin(String domain, String email) {
+        UserEntity userEntity = findUserInStorage(domain, email);
+        if (userEntity.getRole() != UserRole.ADMIN) {
+            throw new UserPermissionException(userEntity.getRole().name(), UserRole.ADMIN.name(),
+                    userEntity.getEmail(), userEntity.getDomain());
+        }
+    }
+
+    /**
+     * Searches and retrieves the user with the given info from the storage.<br/>
+     * If the user doesn't exist, a {@link UserNotFoundException} would be thrown.
+     *
+     * @param domain - The domain in which the user exists.
+     * @param email  - The user's email address.
+     * @return A {@link UserEntity} for the given domain and email address.
+     */
+    private UserEntity findUserInStorage(String domain, String email) {
+        return usersDao.findById(userConverter.toUserPrimaryKey(email, domain))
+                .orElseThrow(() -> new UserNotFoundException(domain, email));
     }
 }

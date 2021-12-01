@@ -66,6 +66,9 @@ public class InstanceConverter {
     }
 
     public UserEntity toCreatedByEntity(CreatedByBoundary createdBy) {
+        if (createdBy == null) {
+            return null;
+        }
         UserEntity entity = new UserEntity();
         entity.setEmail(createdBy.getUserId().getEmail());
         entity.setDomain(createdBy.getUserId().getDomain());
