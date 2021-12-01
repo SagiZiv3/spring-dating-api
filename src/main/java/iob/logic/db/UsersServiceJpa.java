@@ -49,8 +49,7 @@ public class UsersServiceJpa implements UsersService {
     @Override
     @Transactional(readOnly = true)
     public UserBoundary login(String userDomain, String userEmail) {
-        UserEntity entity = usersDao.findById(userConverter.toUserPrimaryKey(userDomain, userEmail))
-                .orElseThrow(() -> new RuntimeException("No user with email " + userEmail + " in domain " + userDomain));
+        UserEntity entity = findUserInStorage(userDomain, userEmail);
 
         return userConverter.toBoundary(entity);
     }
@@ -58,8 +57,7 @@ public class UsersServiceJpa implements UsersService {
     @Override
     @Transactional
     public UserBoundary updateUser(String userDomain, String userEmail, UserBoundary update) {
-        UserEntity entity = usersDao.findById(userConverter.toUserPrimaryKey(userDomain, userEmail))
-                .orElseThrow(() -> new RuntimeException("No user with email " + userEmail + " in domain " + userDomain));
+        UserEntity entity = findUserInStorage(userDomain, userEmail);
 
         if (update.getRole() != null) {
             entity.setRole(UserRole.valueOf(update.getRole().name()));
@@ -114,11 +112,11 @@ public class UsersServiceJpa implements UsersService {
     }
 
     /**
-     * Checks if the given email address is valid<br/>
-     * Source: https://www.baeldung.com/java-email-validation-regex#:~:text=The%20simplest%20regular%20expression%20to,otherwise%2C%20the%20result%20is%20false.
+     * Checks if the given email address is valid
      *
      * @param email - The email address to validate.
      * @return `true` if the email is valid, `false` otherwise.
+     * @see <a href="https://www.baeldung.com/java-email-validation-regex#:~:text=The%20simplest%20regular%20expression%20to,otherwise%2C%20the%20result%20is%20false">Source</a>
      */
     private boolean validateEmail(@NonNull String email) {
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9\\+_-]+(\\.[A-Za-z0-9\\+_-]+)*@"
