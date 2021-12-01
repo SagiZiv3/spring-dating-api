@@ -1,4 +1,4 @@
-package iob.data;
+package iob.data.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

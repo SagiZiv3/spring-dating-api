@@ -1,5 +1,7 @@
 package iob.data;
 
+import iob.data.converters.MapToStringConverter;
+import iob.data.primarykeys.ActivityPrimaryKey;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

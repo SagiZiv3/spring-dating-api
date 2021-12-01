@@ -1,4 +1,4 @@
-package iob.data;
+package iob.data.embeddedentities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

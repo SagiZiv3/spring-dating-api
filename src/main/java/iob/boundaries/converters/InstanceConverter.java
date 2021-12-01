@@ -4,7 +4,7 @@ import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.Location;
 import iob.boundaries.helpers.ObjectId;
 import iob.data.InstanceEntity;
-import iob.data.LocationEntity;
+import iob.data.embeddedentities.LocationEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

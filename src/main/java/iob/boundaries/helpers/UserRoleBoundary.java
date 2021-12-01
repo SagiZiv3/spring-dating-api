@@ -1,6 +1,6 @@
 package iob.boundaries.helpers;
 
-public enum UserRole {
+public enum UserRoleBoundary {
     PLAYER,
     MANAGER,
     ADMIN

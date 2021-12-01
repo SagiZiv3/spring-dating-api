@@ -1,5 +1,8 @@
 package iob.data;
 
+import iob.data.converters.MapToStringConverter;
+import iob.data.embeddedentities.LocationEntity;
+import iob.data.primarykeys.InstancePrimaryKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

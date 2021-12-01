@@ -4,8 +4,9 @@ import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.IdsConverter;
 import iob.boundaries.converters.UserConverter;
 import iob.boundaries.helpers.UserId;
-import iob.boundaries.helpers.UserRole;
+import iob.boundaries.helpers.UserRoleBoundary;
 import iob.data.UserEntity;
+import iob.data.UserRole;
 import iob.logic.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,7 +59,7 @@ public class UsersServiceMockup implements UsersService {
         boolean isDirty = false;
 
         if (update.getRole() != null) {
-            userEntity.setRole(update.getRole().name());
+            userEntity.setRole(UserRole.valueOf(update.getRole().name()));
             isDirty = true;
         }
         if (update.getUsername() != null) {
@@ -96,7 +97,7 @@ public class UsersServiceMockup implements UsersService {
     private void checkIfAdmin(String adminDomain, String adminEmail) {
         UserEntity userEntity = getUserFromStorage(adminDomain, adminEmail);
         UserBoundary boundary = userConverter.toUserBoundary(userEntity);
-        if (boundary.getRole() != UserRole.ADMIN) {
+        if (boundary.getRole() != UserRoleBoundary.ADMIN) {
             throw new RuntimeException("The user with email " + adminEmail + " in domain " + adminDomain + " is not an Admin");
         }
     }

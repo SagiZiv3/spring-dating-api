@@ -3,8 +3,8 @@ package iob.boundaries.converters;
 import iob.boundaries.helpers.InitiatedBy;
 import iob.boundaries.helpers.ObjectId;
 import iob.boundaries.helpers.UserId;
-import iob.data.InstancePrimaryKey;
 import iob.data.UserEntity;
+import iob.data.primarykeys.InstancePrimaryKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

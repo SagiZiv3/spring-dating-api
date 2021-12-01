@@ -1,4 +1,4 @@
-package iob.data;
+package iob.data.primarykeys;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InstancePrimaryKey implements Serializable {
-    private long id = 0;
+public class UserPrimaryKey implements Serializable {
     private String domain;
+    private String email;
 }

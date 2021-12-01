@@ -3,8 +3,9 @@ package iob.boundaries.converters;
 import iob.boundaries.NewUserBoundary;
 import iob.boundaries.UserBoundary;
 import iob.boundaries.helpers.UserId;
-import iob.boundaries.helpers.UserRole;
+import iob.boundaries.helpers.UserRoleBoundary;
 import iob.data.UserEntity;
+import iob.data.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -47,12 +48,12 @@ public class UserConverter {
         return entity;
     }
 
-    public UserRole toUserRoleBoundary(String userRole) {
-        return userRole == null ? null : UserRole.valueOf(userRole);
+    public UserRoleBoundary toUserRoleBoundary(UserRole userRole) {
+        return userRole == null ? null : UserRoleBoundary.valueOf(userRole.name().toUpperCase());
     }
 
-    private String toUserRoleEntity(UserRole userRole) {
-        return userRole == null ? null : userRole.name();
+    private UserRole toUserRoleEntity(UserRoleBoundary userRoleBoundary) {
+        return userRoleBoundary == null ? null : UserRole.valueOf(userRoleBoundary.name());
     }
 
 }

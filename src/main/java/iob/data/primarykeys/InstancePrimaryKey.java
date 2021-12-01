@@ -1,4 +1,4 @@
-package iob.data;
+package iob.data.primarykeys;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivityPrimaryKey implements Serializable {
+public class InstancePrimaryKey implements Serializable {
     private long id = 0;
     private String domain;
 }

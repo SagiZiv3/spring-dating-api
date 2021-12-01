@@ -1,6 +1,6 @@
 package iob.boundaries;
 
-import iob.boundaries.helpers.UserRole;
+import iob.boundaries.helpers.UserRoleBoundary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +14,7 @@ import lombok.ToString;
 @ToString
 public class NewUserBoundary {
     private String email;
-    private UserRole role;
+    private UserRoleBoundary role;
     private String username;
     private String avatar;
 }

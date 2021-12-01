@@ -6,8 +6,9 @@ import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.helpers.InitiatedBy;
 import iob.boundaries.helpers.UserId;
 import iob.data.InstanceEntity;
-import iob.data.InstancePrimaryKey;
+import iob.data.primarykeys.InstancePrimaryKey;
 import iob.logic.InstanceWIthBindingsService;
+import iob.logic.db.Daos.InstancesDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,14 +23,14 @@ import java.util.stream.StreamSupport;
 public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Value("${spring.application.name:dummy}")
     private String domainName;
-    private final InstanceDao instanceDao;
+    private final InstancesDao instancesDao;
     private final InstanceConverter instanceConverter;
     private final IdsConverter idsConverter;
 
 
     @Autowired
-    public InstancesServiceJpa(InstanceDao instanceDao, InstanceConverter converter, IdsConverter idsConverter) {
-        this.instanceDao = instanceDao;
+    public InstancesServiceJpa(InstancesDao instancesDao, InstanceConverter converter, IdsConverter idsConverter) {
+        this.instancesDao = instancesDao;
         this.instanceConverter = converter;
         this.idsConverter = idsConverter;
     }
@@ -46,7 +47,7 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
                 instance.getType() == null || instance.getType().isEmpty())
             throw new RuntimeException("Invalid values! name and type can't be null");
 
-        entityToStore = instanceDao.save(entityToStore);
+        entityToStore = instancesDao.save(entityToStore);
 
         return instanceConverter.toInstanceBoundary(entityToStore);
     }
@@ -54,7 +55,7 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Override
     @Transactional
     public InstanceBoundary updateInstance(String userDomain, String userEmail, String instanceDomain, String instanceId, InstanceBoundary update) {
-        InstanceEntity existing = this.instanceDao
+        InstanceEntity existing = this.instancesDao
                 .findById(new InstancePrimaryKey(Long.parseLong(instanceId), instanceDomain))
 //                .findById(instanceDomain + delimiter + instanceId)
                 .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + instanceId + " in domain " + instanceDomain));
@@ -77,7 +78,7 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
             existing.setType(update.getType());
         }
 
-        existing = instanceDao.save(existing);
+        existing = instancesDao.save(existing);
         return instanceConverter.toInstanceBoundary(existing);
     }
 
@@ -85,7 +86,7 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Transactional(readOnly = true)
     public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
         return StreamSupport
-                .stream(this.instanceDao
+                .stream(this.instancesDao
                         .findAll()
                         .spliterator(), false)
                 .map(this.instanceConverter::toInstanceBoundary)
@@ -95,7 +96,7 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Override
     @Transactional(readOnly = true)
     public InstanceBoundary getSpecificInstance(String userDomain, String userEmail, String instanceDomain, String instanceId) {
-        InstanceEntity existing = this.instanceDao
+        InstanceEntity existing = this.instancesDao
                 .findById(new InstancePrimaryKey(Long.parseLong(instanceId), instanceDomain))
 //                .findById(instanceDomain + delimiter + instanceId)
                 .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + instanceId + " in domain " + instanceDomain));
@@ -105,29 +106,29 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Override
     @Transactional
     public void deleteAllInstances(String adminDomain, String adminEmail) {
-        instanceDao.deleteAll();
+        instancesDao.deleteAll();
     }
 
     @Override
     @Transactional
     public void bindToParent(String parentId, String parentDomain, String childId, String childDomain) {
-        InstanceEntity parent = this.instanceDao
+        InstanceEntity parent = this.instancesDao
                 .findById(new InstancePrimaryKey(Long.parseLong(parentId), parentDomain))
                 .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + parentId + " in domain " + parentDomain));
 
-        InstanceEntity child = this.instanceDao
+        InstanceEntity child = this.instancesDao
                 .findById(new InstancePrimaryKey(Long.parseLong(childId), childDomain))
                 .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + childId + " in domain " + childDomain));
 
         parent.addChild(child);
         child.addParent(parent);
-        instanceDao.save(parent);
+        instancesDao.save(parent);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<InstanceBoundary> getParents(String childId, String childDomain) {
-        InstanceEntity child = this.instanceDao
+        InstanceEntity child = this.instancesDao
                 .findById(new InstancePrimaryKey(Long.parseLong(childId), childDomain))
                 .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + childId + " in domain " + childDomain));
 
@@ -139,7 +140,7 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
     @Override
     @Transactional(readOnly = true)
     public List<InstanceBoundary> getChildren(String parentId, String parentDomain) {
-        InstanceEntity parent = this.instanceDao
+        InstanceEntity parent = this.instancesDao
                 .findById(new InstancePrimaryKey(Long.parseLong(parentId), parentDomain))
                 .orElseThrow(() -> new RuntimeException("Couldn't find instance for user with id " + parentId + " in domain " + parentDomain));
 
