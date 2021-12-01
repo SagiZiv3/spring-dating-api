@@ -1,58 +1,79 @@
 package iob.boundaries.converters;
 
 import iob.boundaries.InstanceBoundary;
+import iob.boundaries.helpers.CreatedByBoundary;
+import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.boundaries.helpers.Location;
-import iob.boundaries.helpers.ObjectId;
 import iob.data.InstanceEntity;
+import iob.data.UserEntity;
 import iob.data.embeddedentities.LocationEntity;
+import iob.data.primarykeys.InstancePrimaryKey;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class InstanceConverter {
-    private final IdsConverter idsConverter;
+    private final UserConverter userConverter;
 
     @Autowired
-    public InstanceConverter(IdsConverter idsConverter) {
-        this.idsConverter = idsConverter;
+    public InstanceConverter(UserConverter userConverter) {
+        this.userConverter = userConverter;
     }
 
-    public InstanceBoundary toInstanceBoundary(InstanceEntity instanceEntity) {
+    public InstanceBoundary toBoundary(InstanceEntity entity) {
         InstanceBoundary boundary = new InstanceBoundary();
-        boundary.setName(instanceEntity.getName());
-        boundary.setType(instanceEntity.getType());
-        boundary.setInstanceAttributes(instanceEntity.getInstanceAttributes());
-        boundary.setCreatedTimestamp(instanceEntity.getCreatedTimestamp());
-        boundary.setActive(instanceEntity.getActive());
-        boundary.setLocation(toLocationBoundary(instanceEntity.getLocation()));
-        boundary.setCreatedBy(idsConverter.toUserIdMapBoundary(instanceEntity.getCreatedBy()));
-        boundary.setInstanceId(new ObjectId(instanceEntity.getDomain(), Long.toString(instanceEntity.getId())));
+        boundary.setName(entity.getName());
+        boundary.setType(entity.getType());
+        boundary.setInstanceAttributes(entity.getInstanceAttributes());
+        boundary.setCreatedTimestamp(entity.getCreatedTimestamp());
+        boundary.setActive(entity.getActive());
+        boundary.setLocation(toLocationBoundary(entity.getLocation()));
+        boundary.setCreatedBy(toCreatedByBoundary(entity.getCreatedBy()));
+        boundary.setInstanceId(toInstanceIdBoundary(entity.getDomain(), entity.getId()));
         return boundary;
     }
 
-    public InstanceEntity toInstanceEntity(InstanceBoundary instanceBoundary) {
-        InstanceEntity entity = new InstanceEntity();
-        entity.setName(instanceBoundary.getName());
-        entity.setType(instanceBoundary.getType());
-        entity.setInstanceAttributes(instanceBoundary.getInstanceAttributes());
-        entity.setCreatedTimestamp(instanceBoundary.getCreatedTimestamp());
-        if (instanceBoundary.getActive() != null)
-            entity.setActive(instanceBoundary.getActive());
-        else
-            entity.setActive(false);
-        entity.setLocation(toLocationEntity(instanceBoundary.getLocation()));
-        entity.setCreatedBy(idsConverter.toUserIdMapEntity(instanceBoundary.getCreatedBy()));
+    private Location toLocationBoundary(LocationEntity location) {
+        if (location == null) return null;
+        return new Location(location.getLocationLat(), location.getLocationLng());
+    }
 
-        if (instanceBoundary.getInstanceId() != null) {
-            entity.setDomain(instanceBoundary.getInstanceId().getDomain());
-            entity.setId(Long.parseLong(instanceBoundary.getInstanceId().getId()));
+    private CreatedByBoundary toCreatedByBoundary(UserEntity createdBy) {
+        return new CreatedByBoundary(userConverter.toUserIdBoundary(createdBy.getDomain(), createdBy.getEmail()));
+    }
+
+    public InstanceIdBoundary toInstanceIdBoundary(String domain, long id) {
+        return new InstanceIdBoundary(domain, Long.toString(id));
+    }
+
+    public InstanceEntity toEntity(InstanceBoundary boundary) {
+        InstanceEntity entity = new InstanceEntity();
+        entity.setName(boundary.getName());
+        entity.setType(boundary.getType());
+        entity.setInstanceAttributes(boundary.getInstanceAttributes());
+        entity.setCreatedTimestamp(boundary.getCreatedTimestamp());
+        entity.setActive(boundary.getActive() != null && boundary.getActive());
+        entity.setLocation(toLocationEntity(boundary.getLocation()));
+        entity.setCreatedBy(toCreatedByEntity(boundary.getCreatedBy()));
+
+        if (boundary.getInstanceId() != null) {
+            InstancePrimaryKey instanceKey = toInstancePrimaryKey(boundary.getInstanceId());
+            entity.setDomain(instanceKey.getDomain());
+            entity.setId(instanceKey.getId());
         }
         return entity;
     }
 
-    public Location toLocationBoundary(LocationEntity location) {
-        if (location == null) return null;
-        return new Location(location.getLocationLat(), location.getLocationLng());
+    public UserEntity toCreatedByEntity(CreatedByBoundary createdBy) {
+        UserEntity entity = new UserEntity();
+        entity.setEmail(createdBy.getUserId().getEmail());
+        entity.setDomain(createdBy.getUserId().getDomain());
+        return entity;
+    }
+
+    public InstancePrimaryKey toInstancePrimaryKey(@NonNull InstanceIdBoundary instanceIdBoundary) {
+        return new InstancePrimaryKey(Long.parseLong(instanceIdBoundary.getId()), instanceIdBoundary.getDomain());
     }
 
     public LocationEntity toLocationEntity(Location location) {

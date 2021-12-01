@@ -1,8 +1,8 @@
 package iob.boundaries;
 
-import iob.boundaries.helpers.InitiatedBy;
-import iob.boundaries.helpers.Instance;
-import iob.boundaries.helpers.ObjectId;
+import iob.boundaries.helpers.ActivityIdBoundary;
+import iob.boundaries.helpers.InstanceIdWrapper;
+import iob.boundaries.helpers.InvokedByBoundary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,10 +19,10 @@ import java.util.Map;
 @AllArgsConstructor
 @ToString
 public class ActivityBoundary {
-    private ObjectId activityId;
+    private ActivityIdBoundary activityId;
     private String type;
-    private Instance instance;
+    private InstanceIdWrapper instance;
     private Date createdTimestamp;
-    private InitiatedBy invokedBy;
+    private InvokedByBoundary invokedBy;
     private Map<String, Object> activityAttributes;
 }

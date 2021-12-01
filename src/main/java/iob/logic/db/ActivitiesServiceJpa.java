@@ -29,17 +29,13 @@ public class ActivitiesServiceJpa implements ActivitiesService {
 
     @Override
     public Object invokeActivity(ActivityBoundary activity) {
-        System.out.println("INVOKE");
-        ActivityEntity entity = activityConverter.toActivityEntity(activity);
-        System.out.println(entity);
+        ActivityEntity entity = activityConverter.toEntity(activity);
         entity.setCreatedTimestamp(new Date());
         entity.setDomain(domainName);
-        System.out.println("A  " + entity);
 
         entity = activitiesDao.save(entity);
-        System.out.println("B  " + entity);
 
-        return activityConverter.toActivityBoundary(entity);
+        return activityConverter.toBoundary(entity);
     }
 
     @Override
@@ -47,7 +43,7 @@ public class ActivitiesServiceJpa implements ActivitiesService {
         return StreamSupport.stream(
                         activitiesDao.findAll()
                                 .spliterator(), false
-                ).map(this.activityConverter::toActivityBoundary)
+                ).map(this.activityConverter::toBoundary)
                 .collect(Collectors.toList());
     }
 

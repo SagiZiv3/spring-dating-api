@@ -1,6 +1,6 @@
 package iob.boundaries;
 
-import iob.boundaries.helpers.UserId;
+import iob.boundaries.helpers.UserIdBoundary;
 import iob.boundaries.helpers.UserRoleBoundary;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class UserBoundary {
-    private UserId userId;
+    private UserIdBoundary userId;
     private UserRoleBoundary role;
     private String username;
     private String avatar;

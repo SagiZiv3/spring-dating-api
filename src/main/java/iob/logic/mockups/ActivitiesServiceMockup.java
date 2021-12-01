@@ -2,7 +2,6 @@ package iob.logic.mockups;
 
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.converters.ActivityConverter;
-import iob.boundaries.helpers.ObjectId;
 import iob.data.ActivityEntity;
 import iob.logic.ActivitiesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 //@Service
 public class ActivitiesServiceMockup implements ActivitiesService {
@@ -39,21 +36,23 @@ public class ActivitiesServiceMockup implements ActivitiesService {
 
     @Override
     public Object invokeActivity(ActivityBoundary activity) {
-        activity.setActivityId(new ObjectId(domainName, atomicLong.getAndIncrement() + ""));
-        activity.setCreatedTimestamp(new Date());
-        ActivityEntity entity = activityConverter.toActivityEntity(activity);
-
-//        storage.putIfAbsent(entity.getActivityId(), entity);
-
-        return activityConverter.toActivityBoundary(entity);
+        return null;
+//        activity.setActivityId(new ObjectId(domainName, atomicLong.getAndIncrement() + ""));
+//        activity.setCreatedTimestamp(new Date());
+//        ActivityEntity entity = activityConverter.toActivityEntity(activity);
+//
+////        storage.putIfAbsent(entity.getActivityId(), entity);
+//
+//        return activityConverter.toActivityBoundary(entity);
     }
 
     @Override
     public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
-        return storage.values()
-                .stream()
-                .map(activityConverter::toActivityBoundary)
-                .collect(Collectors.toList());
+        return null;
+//        return storage.values()
+//                .stream()
+//                .map(activityConverter::toActivityBoundary)
+//                .collect(Collectors.toList());
     }
 
     @Override

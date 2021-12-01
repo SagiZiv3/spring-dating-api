@@ -11,6 +11,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class Instance {
-    private ObjectId instanceId;
+public class ActivityIdBoundary {
+    private String domain, id;
 }

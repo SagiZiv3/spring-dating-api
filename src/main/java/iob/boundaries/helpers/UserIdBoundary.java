@@ -11,7 +11,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class UserId {
+public class UserIdBoundary {
     private String domain;
     private String email;
 }

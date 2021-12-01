@@ -2,11 +2,12 @@ package iob.boundaries.converters;
 
 import iob.boundaries.NewUserBoundary;
 import iob.boundaries.UserBoundary;
-import iob.boundaries.helpers.UserId;
+import iob.boundaries.helpers.UserIdBoundary;
 import iob.boundaries.helpers.UserRoleBoundary;
 import iob.data.UserEntity;
 import iob.data.UserRole;
-import org.springframework.beans.factory.annotation.Autowired;
+import iob.data.primarykeys.UserPrimaryKey;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,46 +15,58 @@ import org.springframework.stereotype.Component;
 public class UserConverter {
     @Value("${spring.application.name:dummy}")
     private String applicationDomainName;
-    private final IdsConverter idsConverter;
 
-    @Autowired
-    public UserConverter(IdsConverter idsConverter) {
-        this.idsConverter = idsConverter;
-    }
-
-    public UserBoundary toUserBoundary(UserEntity userEntity) {
+    public UserBoundary toBoundary(@NonNull UserEntity entity) {
         UserBoundary boundary = new UserBoundary();
-        boundary.setUserId(idsConverter.toUserIdBoundary(userEntity.getId()));
-        boundary.setAvatar(userEntity.getAvatar());
-        boundary.setRole(toUserRoleBoundary(userEntity.getRole()));
-        boundary.setUsername(userEntity.getUsername());
+        boundary.setUserId(toUserIdBoundary(entity.getDomain(), entity.getEmail()));
+        boundary.setUsername(entity.getUsername());
+        boundary.setAvatar(entity.getAvatar());
+        boundary.setRole(toUserRoleBoundary(entity.getRole()));
         return boundary;
     }
 
-    public UserBoundary toUserBoundary(NewUserBoundary newUser) {
+    public UserIdBoundary toUserIdBoundary(String domain, String email) {
+        return new UserIdBoundary(domain, email);
+    }
+
+    private UserRoleBoundary toUserRoleBoundary(UserRole userRole) {
+        if (userRole == null) return null;
+        return UserRoleBoundary.values()[userRole.ordinal()];
+    }
+
+    public UserBoundary toBoundary(NewUserBoundary newUser) {
         UserBoundary boundary = new UserBoundary();
-        boundary.setUserId(new UserId(applicationDomainName, newUser.getEmail())); // Create the user with the app's domain
+        // Create the user with the app's domain
+        boundary.setUserId(new UserIdBoundary(applicationDomainName, newUser.getEmail()));
         boundary.setUsername(newUser.getUsername());
         boundary.setRole(newUser.getRole());
         boundary.setAvatar(newUser.getAvatar());
         return boundary;
     }
 
-    public UserEntity toUserEntity(UserBoundary userBoundary) {
+    public UserEntity toEntity(UserBoundary userBoundary) {
         UserEntity entity = new UserEntity();
         entity.setAvatar(userBoundary.getAvatar());
         entity.setUsername(userBoundary.getUsername());
-        entity.setId(idsConverter.toUserIdEntity(userBoundary.getUserId()));
         entity.setRole(toUserRoleEntity(userBoundary.getRole()));
+        if (userBoundary.getUserId() != null) {
+            UserPrimaryKey userKey = toUserPrimaryKey(userBoundary.getUserId());
+            entity.setDomain(userKey.getDomain());
+            entity.setEmail(userKey.getEmail());
+        }
         return entity;
     }
 
-    public UserRoleBoundary toUserRoleBoundary(UserRole userRole) {
-        return userRole == null ? null : UserRoleBoundary.valueOf(userRole.name().toUpperCase());
+    private UserRole toUserRoleEntity(UserRoleBoundary userRole) {
+        if (userRole == null) return null;
+        return UserRole.values()[userRole.ordinal()];
     }
 
-    private UserRole toUserRoleEntity(UserRoleBoundary userRoleBoundary) {
-        return userRoleBoundary == null ? null : UserRole.valueOf(userRoleBoundary.name());
+    public UserPrimaryKey toUserPrimaryKey(UserIdBoundary userId) {
+        return new UserPrimaryKey(userId.getDomain(), userId.getEmail());
     }
 
+    public UserPrimaryKey toUserPrimaryKey(String email, String domain) {
+        return new UserPrimaryKey(domain, email);
+    }
 }

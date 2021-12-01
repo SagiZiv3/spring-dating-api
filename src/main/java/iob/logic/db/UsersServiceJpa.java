@@ -1,9 +1,7 @@
 package iob.logic.db;
 
 import iob.boundaries.UserBoundary;
-import iob.boundaries.converters.IdsConverter;
 import iob.boundaries.converters.UserConverter;
-import iob.boundaries.helpers.UserId;
 import iob.boundaries.helpers.UserRoleBoundary;
 import iob.data.UserEntity;
 import iob.data.UserRole;
@@ -20,48 +18,46 @@ import java.util.stream.StreamSupport;
 @Service
 public class UsersServiceJpa implements UsersService {
     private final UserConverter userConverter;
-    private final IdsConverter idsConverter;
     private final UsersDao usersDao;
 
     @Autowired
-    public UsersServiceJpa(UserConverter userConverter, IdsConverter idsConverter, UsersDao usersDao) {
+    public UsersServiceJpa(UserConverter userConverter, UsersDao usersDao) {
         this.userConverter = userConverter;
-        this.idsConverter = idsConverter;
         this.usersDao = usersDao;
     }
 
     @Override
     @Transactional
     public UserBoundary createUser(UserBoundary user) {
-        UserEntity entityToStore = this.userConverter.toUserEntity(user);
+        UserEntity entityToStore = this.userConverter.toEntity(user);
         if (!validateEmail(user.getUserId().getEmail())) {
             throw new RuntimeException("Invalid email " + user.getUserId().getEmail());
         }
 
         // First make sure the user doesn't exist already.
-        if (usersDao.existsById(entityToStore.getId())) {
+        if (usersDao.existsById(userConverter.toUserPrimaryKey(entityToStore.getEmail(), entityToStore.getDomain()))) {
             throw new RuntimeException("User already exists with email " + user.getUserId().getEmail() +
                     " in domain " + user.getUserId().getDomain());
         }
 
         entityToStore = usersDao.save(entityToStore);
 
-        return userConverter.toUserBoundary(entityToStore);
+        return userConverter.toBoundary(entityToStore);
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserBoundary login(String userDomain, String userEmail) {
-        UserEntity entity = usersDao.findById(idsConverter.toUserIdEntity(new UserId(userDomain, userEmail)))
+        UserEntity entity = usersDao.findById(userConverter.toUserPrimaryKey(userDomain, userEmail))
                 .orElseThrow(() -> new RuntimeException("No user with email " + userEmail + " in domain " + userDomain));
 
-        return userConverter.toUserBoundary(entity);
+        return userConverter.toBoundary(entity);
     }
 
     @Override
     @Transactional
     public UserBoundary updateUser(String userDomain, String userEmail, UserBoundary update) {
-        UserEntity entity = usersDao.findById(idsConverter.toUserIdEntity(new UserId(userDomain, userEmail)))
+        UserEntity entity = usersDao.findById(userConverter.toUserPrimaryKey(userDomain, userEmail))
                 .orElseThrow(() -> new RuntimeException("No user with email " + userEmail + " in domain " + userDomain));
 
         if (update.getRole() != null) {
@@ -75,7 +71,7 @@ public class UsersServiceJpa implements UsersService {
         }
 
         entity = usersDao.save(entity);
-        return userConverter.toUserBoundary(entity);
+        return userConverter.toBoundary(entity);
     }
 
     @Override
@@ -86,7 +82,7 @@ public class UsersServiceJpa implements UsersService {
                 .stream(this.usersDao
                         .findAll()
                         .spliterator(), false)
-                .map(this.userConverter::toUserBoundary)
+                .map(this.userConverter::toBoundary)
                 .collect(Collectors.toList());
     }
 
@@ -98,9 +94,9 @@ public class UsersServiceJpa implements UsersService {
     }
 
     private void checkIfAdmin(String adminDomain, String adminEmail) {
-        UserEntity userEntity = usersDao.findById(idsConverter.toUserIdEntity(new UserId(adminDomain, adminEmail)))
+        UserEntity userEntity = usersDao.findById(userConverter.toUserPrimaryKey(adminDomain, adminEmail))
                 .orElseThrow(() -> new RuntimeException("No user with email " + adminEmail + " in domain " + adminDomain));
-        UserBoundary boundary = userConverter.toUserBoundary(userEntity);
+        UserBoundary boundary = userConverter.toBoundary(userEntity);
         if (boundary.getRole() != UserRoleBoundary.ADMIN) {
             throw new RuntimeException("The user with email " + adminEmail + " in domain " + adminDomain + " is not an Admin");
         }

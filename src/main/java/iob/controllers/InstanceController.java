@@ -1,7 +1,7 @@
 package iob.controllers;
 
 import iob.boundaries.InstanceBoundary;
-import iob.boundaries.helpers.ObjectId;
+import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.logic.InstanceWIthBindingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -40,7 +40,7 @@ public class InstanceController {
 
     @PutMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children")
     public void bindToChild(
-            @RequestBody ObjectId childInstanceId, @PathVariable("userDomain") String userDomain,
+            @RequestBody InstanceIdBoundary childInstanceId, @PathVariable("userDomain") String userDomain,
             @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String parentInstanceDomain,
             @PathVariable("instanceId") String parentInstanceId) {
         instancesService.bindToParent(parentInstanceId, parentInstanceDomain, childInstanceId.getId(), childInstanceId.getDomain());

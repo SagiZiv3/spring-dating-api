@@ -28,7 +28,7 @@ public class UserController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserBoundary createUser(@RequestBody NewUserBoundary newUser) {
-        UserBoundary userBoundary = userConverter.toUserBoundary(newUser);
+        UserBoundary userBoundary = userConverter.toBoundary(newUser);
         return usersService.createUser(userBoundary);
     }
 

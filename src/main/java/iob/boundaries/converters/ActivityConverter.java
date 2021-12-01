@@ -1,66 +1,82 @@
 package iob.boundaries.converters;
 
 import iob.boundaries.ActivityBoundary;
-import iob.boundaries.helpers.Instance;
-import iob.boundaries.helpers.ObjectId;
+import iob.boundaries.helpers.ActivityIdBoundary;
+import iob.boundaries.helpers.InstanceIdWrapper;
+import iob.boundaries.helpers.InvokedByBoundary;
 import iob.data.ActivityEntity;
 import iob.data.InstanceEntity;
-import lombok.NonNull;
+import iob.data.UserEntity;
+import iob.data.primarykeys.ActivityPrimaryKey;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ActivityConverter {
-    @Value("${application.entity.delimiter}")
-    private String delimiter;
-    private final IdsConverter idsConverter;
+    private final UserConverter userConverter;
+    private final InstanceConverter instanceConverter;
 
     @Autowired
-    public ActivityConverter(IdsConverter idsConverter) {
-        this.idsConverter = idsConverter;
+    public ActivityConverter(UserConverter userConverter, InstanceConverter instanceConverter) {
+        this.userConverter = userConverter;
+        this.instanceConverter = instanceConverter;
     }
 
-    public ActivityBoundary toActivityBoundary(@NonNull ActivityEntity entity) {
+    public ActivityBoundary toBoundary(ActivityEntity entity) {
         ActivityBoundary boundary = new ActivityBoundary();
+
         boundary.setType(entity.getType());
         boundary.setActivityAttributes(entity.getActivityAttributes());
-        boundary.setInstance(toInstanceBoundary(entity.getInstance()));
-        boundary.setInvokedBy(idsConverter.toUserIdMapBoundary(entity.getInvokedBy()));
+        boundary.setInstance(toInstanceIdBoundary(entity.getInstance()));
+        boundary.setInvokedBy(toInvokedByBoundary(entity.getInvokedBy()));
         boundary.setCreatedTimestamp(entity.getCreatedTimestamp());
-        boundary.setActivityId(new ObjectId(entity.getDomain(), Long.toString(entity.getId())));
+        boundary.setActivityId(toActivityIdBoundary(entity.getDomain(), entity.getId()));
+
         return boundary;
     }
 
-    private Instance toInstanceBoundary(InstanceEntity instance) {
-//        String[] parameters = createdBy.get("userId").split(delimiter);
-//        return new Instance(new ObjectId(parameters[0], parameters[1]));
-        return new Instance(new ObjectId(
-                instance.getDomain(),
-                Long.toString(instance.getId())
-        ));
+    private InstanceIdWrapper toInstanceIdBoundary(InstanceEntity instanceEntity) {
+        return new InstanceIdWrapper(instanceConverter.toInstanceIdBoundary(instanceEntity.getDomain(), instanceEntity.getId()));
     }
 
-    public ActivityEntity toActivityEntity(ActivityBoundary boundary) {
+    private InvokedByBoundary toInvokedByBoundary(UserEntity userEntity) {
+        return new InvokedByBoundary(userConverter.toUserIdBoundary(userEntity.getEmail(), userEntity.getDomain()));
+    }
+
+    public ActivityIdBoundary toActivityIdBoundary(String domain, long id) {
+        return new ActivityIdBoundary(domain, Long.toString(id));
+    }
+
+    public ActivityEntity toEntity(ActivityBoundary boundary) {
         ActivityEntity entity = new ActivityEntity();
         entity.setType(boundary.getType());
         entity.setActivityAttributes(boundary.getActivityAttributes());
-        entity.setInstance(toInstanceEntity(boundary.getInstance()));
-        entity.setInvokedBy(idsConverter.toUserIdMapEntity(boundary.getInvokedBy()));
+        entity.setInstance(toInstanceIdEntity(boundary.getInstance()));
+        entity.setInvokedBy(toInvokedByEntity(boundary.getInvokedBy()));
         entity.setCreatedTimestamp(boundary.getCreatedTimestamp());
         if (boundary.getActivityId() != null) {
-            entity.setDomain(boundary.getActivityId().getDomain());
-            entity.setId(Long.parseLong(boundary.getActivityId().getId()));
+            ActivityPrimaryKey entityKey = toActivityPrimaryKey(boundary.getActivityId());
+            entity.setDomain(entityKey.getDomain());
+            entity.setId(entityKey.getId());
         }
         return entity;
     }
 
-    private InstanceEntity toInstanceEntity(Instance instance) {
+    private InstanceEntity toInstanceIdEntity(InstanceIdWrapper instanceId) {
         InstanceEntity entity = new InstanceEntity();
-        entity.setId(Long.parseLong(instance.getInstanceId().getId()));
-        entity.setDomain(instance.getInstanceId().getDomain());
-//        Map<String, String> entity = new HashMap<>();
-//        entity.put("instanceId", createdBy.getInstanceId().getDomain() + delimiter + createdBy.getInstanceId().getId());
+        entity.setDomain(instanceId.getInstanceId().getDomain());
+        entity.setId(Long.parseLong(instanceId.getInstanceId().getId()));
         return entity;
+    }
+
+    private UserEntity toInvokedByEntity(InvokedByBoundary invokedBy) {
+        UserEntity entity = new UserEntity();
+        entity.setDomain(invokedBy.getUserId().getDomain());
+        entity.setEmail(invokedBy.getUserId().getEmail());
+        return entity;
+    }
+
+    public ActivityPrimaryKey toActivityPrimaryKey(ActivityIdBoundary activityIdBoundary) {
+        return new ActivityPrimaryKey(Long.parseLong(activityIdBoundary.getId()), activityIdBoundary.getDomain());
     }
 }

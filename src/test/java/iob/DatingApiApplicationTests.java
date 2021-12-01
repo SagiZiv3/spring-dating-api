@@ -1,41 +1,39 @@
 package iob;
 
-import javax.annotation.PostConstruct;
-
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.aspectj.lang.annotation.After;
+import iob.boundaries.InstanceBoundary;
+import iob.boundaries.converters.InstanceConverter;
+import iob.boundaries.helpers.InstanceIdBoundary;
+import iob.boundaries.helpers.Location;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
 
-import iob.boundaries.InstanceBoundary;
-import iob.boundaries.helpers.Instance;
-import iob.boundaries.helpers.Location;
-import iob.boundaries.helpers.ObjectId;
-import lombok.Cleanup;
+import javax.annotation.PostConstruct;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class InstancesAPITests {
-	
+
 	@Value("${spring.application.name:dummy}")
 	private String domainName;
+	@Autowired
+	private InstanceConverter instanceConverter;
 	private int port;
-	
+
 	// setup helper object to invoke HTTP requests
 	private RestTemplate client;
-	
+
 	// setup a String used to represent the URL used to access the server
 	private String url;
-	
+
 	// get random port used by server
 	@LocalServerPort
 	public void setPort(int port) {
@@ -53,13 +51,13 @@ class InstancesAPITests {
 		// GIVEN 
 		// the server is up ( DO Nothing)
 		InstanceBoundary requestsOutput = addDummyInstance("Sagi Ziv", "MahrozetBliMashmaut");
-		ObjectId id = requestsOutput.getInstanceId();
+		InstanceIdBoundary id = requestsOutput.getInstanceId();
 		
 		// THEN
 		// instance would be added
 		InstanceBoundary fetchedFromDB = this.client.getForObject(this.url + "/instances/2022a.tomer/user@gmail.com/" + id.getDomain() + "/" + id.getId(),
-								InstanceBoundary.class,
-								id.getDomain() + ";" + id.getId());
+				InstanceBoundary.class,
+				instanceConverter.toInstancePrimaryKey(id));
 		
 		assertEquals(fetchedFromDB.getName(), "Sagi Ziv");
 		assertEquals(fetchedFromDB.getType(), "MahrozetBliMashmaut");
@@ -80,17 +78,17 @@ class InstancesAPITests {
 	@Test
 	public void testModifyInstance(){
 		InstanceBoundary requestsOutput = addDummyInstance("Sagi Ziv", "MahrozetBliMashmaut");
-		ObjectId id = requestsOutput.getInstanceId();
+		InstanceIdBoundary id = requestsOutput.getInstanceId();
 		
 		InstanceBoundary newUpdatedInstance = new InstanceBoundary();
 		newUpdatedInstance.setType("MashuAher");
 		Location locObj = new Location(5.0,5.0);
 		newUpdatedInstance.setLocation(locObj);
 
-		// Modifying to new instace
+		// Modifying to new instance
 		this.client.put(this.url + "/instances/2022a.tomer/user@gmail.com/" + id.getDomain() + "/" + id.getId(),
-						newUpdatedInstance,
-						id.getDomain() + ";" + id.getId());
+				newUpdatedInstance,
+				instanceConverter.toInstancePrimaryKey(id));
 
 		
 		// Fetching modified instance

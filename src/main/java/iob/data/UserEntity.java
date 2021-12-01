@@ -1,6 +1,7 @@
 package iob.data;
 
 
+import iob.data.primarykeys.UserPrimaryKey;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 @Data
@@ -17,10 +19,14 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @Entity
 @Table(name = "USERS")
+@IdClass(UserPrimaryKey.class)
 public class UserEntity {
     @Id
     @NonNull
-    private String id;
+    private String domain;
+    @Id
+    @NonNull
+    private String email;
     @Enumerated(EnumType.STRING)
     private UserRole role;
     @NonNull
