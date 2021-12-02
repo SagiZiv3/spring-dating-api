@@ -76,7 +76,11 @@ public class InstanceConverter {
     }
 
     public InstancePrimaryKey toInstancePrimaryKey(@NonNull InstanceIdBoundary instanceIdBoundary) {
-        return new InstancePrimaryKey(Long.parseLong(instanceIdBoundary.getId()), instanceIdBoundary.getDomain());
+        return toInstancePrimaryKey(instanceIdBoundary.getId(), instanceIdBoundary.getDomain());
+    }
+
+    public InstancePrimaryKey toInstancePrimaryKey(String id, String domain) {
+        return new InstancePrimaryKey(Long.parseLong(id), domain);
     }
 
     public LocationEntity toLocationEntity(Location location) {
