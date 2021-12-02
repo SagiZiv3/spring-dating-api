@@ -8,6 +8,7 @@ import iob.logic.db.dao.ActivitiesDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -28,6 +29,7 @@ public class ActivitiesServiceJpa implements ActivitiesService {
     }
 
     @Override
+    @Transactional
     public Object invokeActivity(ActivityBoundary activity) {
         ActivityEntity entity = activityConverter.toEntity(activity);
         entity.setCreatedTimestamp(new Date());
@@ -39,6 +41,7 @@ public class ActivitiesServiceJpa implements ActivitiesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
         return StreamSupport.stream(
                         activitiesDao.findAll()
@@ -48,6 +51,7 @@ public class ActivitiesServiceJpa implements ActivitiesService {
     }
 
     @Override
+    @Transactional
     public void deleteAllActivities(String adminDomain, String adminEmail) {
         activitiesDao.deleteAll();
     }
