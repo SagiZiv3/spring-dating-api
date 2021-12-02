@@ -1,4 +1,4 @@
-package iob.logic.db.Daos;
+package iob.logic.db.dao;
 
 import iob.data.InstanceEntity;
 import iob.data.primarykeys.InstancePrimaryKey;

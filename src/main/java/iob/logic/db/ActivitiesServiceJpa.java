@@ -4,7 +4,7 @@ import iob.boundaries.ActivityBoundary;
 import iob.boundaries.converters.ActivityConverter;
 import iob.data.ActivityEntity;
 import iob.logic.ActivitiesService;
-import iob.logic.db.Daos.ActivitiesDao;
+import iob.logic.db.dao.ActivitiesDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

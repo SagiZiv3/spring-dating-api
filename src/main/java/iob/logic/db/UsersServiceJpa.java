@@ -5,7 +5,7 @@ import iob.boundaries.converters.UserConverter;
 import iob.data.UserEntity;
 import iob.data.UserRole;
 import iob.logic.UsersService;
-import iob.logic.db.Daos.UsersDao;
+import iob.logic.db.dao.UsersDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.user.UserExistsException;
 import iob.logic.exceptions.user.UserNotFoundException;

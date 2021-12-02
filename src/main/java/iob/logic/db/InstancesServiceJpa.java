@@ -4,7 +4,7 @@ import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.InstanceConverter;
 import iob.data.InstanceEntity;
 import iob.logic.InstanceWIthBindingsService;
-import iob.logic.db.Daos.InstancesDao;
+import iob.logic.db.dao.InstancesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.instance.InstanceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;

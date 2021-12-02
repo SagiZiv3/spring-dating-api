@@ -1,4 +1,4 @@
-package iob.logic.db.Daos;
+package iob.logic.db.dao;
 
 import iob.data.UserEntity;
 import iob.data.primarykeys.UserPrimaryKey;
