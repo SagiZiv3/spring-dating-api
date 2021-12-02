@@ -16,4 +16,13 @@ public class InstanceExceptionsHandler {
         );
         return new ResponseEntity<>(response, response.getHttpStatus());
     }
+
+    @ExceptionHandler(InvalidBindingOperationException.class)
+    private ResponseEntity<ExceptionResponse> handleInvalidBindingOperationException(InvalidBindingOperationException e) {
+        ExceptionResponse response = new ExceptionResponse(
+                "Can't bind instance to himself",
+                HttpStatus.UNPROCESSABLE_ENTITY
+        );
+        return new ResponseEntity<>(response, response.getHttpStatus());
+    }
 }
