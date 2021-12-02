@@ -5,6 +5,7 @@ import iob.boundaries.converters.ActivityConverter;
 import iob.data.ActivityEntity;
 import iob.logic.ActivitiesService;
 import iob.logic.db.dao.ActivitiesDao;
+import iob.logic.exceptions.InvalidInputException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class ActivitiesServiceJpa implements ActivitiesService {
     @Override
     @Transactional
     public Object invokeActivity(ActivityBoundary activity) {
+        validateActivity(activity);
         ActivityEntity entity = activityConverter.toEntity(activity);
         entity.setCreatedTimestamp(new Date());
         entity.setDomain(domainName);
@@ -38,6 +40,18 @@ public class ActivitiesServiceJpa implements ActivitiesService {
         entity = activitiesDao.save(entity);
 
         return activityConverter.toBoundary(entity);
+    }
+
+    private void validateActivity(ActivityBoundary activity) {
+        if (activity.getType() == null || activity.getType().isEmpty()) {
+            throw new InvalidInputException("type", activity.getType());
+        }
+        if (activity.getInvokedBy() == null) {
+            throw new InvalidInputException("invoked by", null);
+        }
+        if (activity.getInstance() == null) {
+            throw new InvalidInputException("instance", null);
+        }
     }
 
     @Override
