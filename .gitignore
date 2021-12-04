@@ -92,3 +92,5 @@ build/
 #maven-build
 /.mvn/*
 
+.gitignore
+pom.xml

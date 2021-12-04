@@ -14,7 +14,10 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 
+import java.util.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -22,11 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class InstancesAPITests {
 	// Enable access from everywhere using: InstanceAPITests.KEYS.{___}
 	public interface KEYS{
-		final String USER_EMAIL = "Shahar@sagi.com";
+		final String USER_EMAIL = "user@gmail.com";
 		final String USERNAME = "InstancesAPITests_InvokingUser";
 		final String USER_AVATAR = "InvokingUser";
-		final String INSTANCE_TYPE = "dummyInstance";
-		final String INSTANCE_NAME = "dummyInstance";
+		final String INSTANCE_TYPE = "dummyInstanceType";
+		final String INSTANCE_NAME = "dummyInstanceName";
 
 	}
 
@@ -51,6 +54,11 @@ class InstancesAPITests {
 		this.url = "http://localhost:" + this.port + "/iob";
 		this.client = new RestTemplate();
 
+
+	}
+
+	@BeforeAll
+	public void createUserInvoking(){
 		// Adding user to server createUserInvoking
 		userActivating = new NewUserBoundary(KEYS.USER_EMAIL, UserRoleBoundary.ADMIN, KEYS.USERNAME, KEYS.USER_AVATAR);
 		this.client.postForObject(this.url + "/users",
@@ -59,10 +67,12 @@ class InstancesAPITests {
 	}
 
 
-//	@AfterAll
-//	public void deleteAllUsers(){
-////		this.client.delete(this.url + "/admin/users/" + domainName + "/" + domai);
-//	}
+	@AfterAll
+	public void deleteAllUsers(){
+		this.client.delete(this.url + "/admin/instances/" + domainName + "/" + KEYS.USER_EMAIL);
+		this.client.delete(this.url + "/admin/users/" + domainName + "/" + KEYS.USER_EMAIL);
+
+	}
 
 	private InstanceBoundary addDummyInstance(String instanceName){
 		Location locObj = new Location(5.0,5.0); // creating dummy location
@@ -71,12 +81,8 @@ class InstancesAPITests {
 		addMe.setType(KEYS.INSTANCE_TYPE);
 		addMe.setLocation(locObj);
 
-		// ___ WHAT and WHY Am I? ___
-		CreatedByBoundary creatorOfInstance = new CreatedByBoundary(new UserIdBoundary(domainName, KEYS.USER_EMAIL));
-		addMe.setCreatedBy(creatorOfInstance);
-
 		// post instance on system
-		InstanceBoundary requestsOutput = this.client.postForObject(this.url + "/instances/2022a.tomer/user@gmail.com",
+		InstanceBoundary requestsOutput = this.client.postForObject(this.url + "/instances/" + domainName + "/" + KEYS.USER_EMAIL,
 				addMe,
 				InstanceBoundary.class);
 
@@ -114,9 +120,11 @@ class InstancesAPITests {
 
 	@Test
 	public void testModifyInstance(){
+		// insert old
 		InstanceBoundary requestsOutput = addDummyInstance(KEYS.INSTANCE_NAME);
 		InstanceIdBoundary id = requestsOutput.getInstanceId();
-		
+
+		// create new
 		InstanceBoundary newUpdatedInstance = new InstanceBoundary();
 		newUpdatedInstance.setType("MashuAher");
 		Location locObj = new Location(5.0,5.0);
@@ -124,14 +132,12 @@ class InstancesAPITests {
 
 		// Modifying to new instance
 		this.client.put(this.url + "/instances/2022a.tomer/user@gmail.com/" + id.getDomain() + "/" + id.getId(),
-				newUpdatedInstance,
-				instanceConverter.toInstancePrimaryKey(id));
+				newUpdatedInstance);
 
 		
 		// Fetching modified instance
 		InstanceBoundary fetchedFromDB = this.client.getForObject(this.url + "/instances/2022a.tomer/user@gmail.com/" + id.getDomain() + "/" + id.getId(),
-																InstanceBoundary.class,
-																id.getDomain() + ";" + id.getId());
+																InstanceBoundary.class);
 
 		assertEquals(fetchedFromDB.getLocation(), locObj);
 		assertEquals(fetchedFromDB.getType(), "MashuAher");
@@ -161,27 +167,42 @@ class InstancesAPITests {
 	public void testGetAllInstances(){
 		// GIVEN
 		// we have instances in the program
-		InstanceBoundary[] demo =  new InstanceBoundary[3];
-		demo[0] =  addDummyInstance(KEYS.INSTANCE_NAME + "_0");
-		demo[1] = addDummyInstance(KEYS.INSTANCE_NAME+ "_1");
-		demo[2] = addDummyInstance(KEYS.INSTANCE_NAME+ "_2");
+
+		InstanceBoundary[] returnedB4Insertion = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
+				InstanceBoundary[].class);
+
+		ArrayList<InstanceBoundary> demo1 = new ArrayList<>();
+
+		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_0"));
+		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME+ "_1"));
+		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME+ "_2"));
 
 		// Get all instances
 		InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
 				InstanceBoundary[].class);
 
-		// check that we dont have any users inside
-		// TODO: 03/12/2021 fix contains assertion. Maybe implement equals manually [in InstanceBoundary]
-		// assertThat(returnedFromRequest).containsAll(Arrays.asList(demo));
-		assertThat((InstanceBoundary[])returnedFromRequest).contains(demo[0]);
+		//		Test by length
+		assertEquals((returnedB4Insertion.length + demo1.size()), returnedFromRequest.length);
+		assert(List.of(returnedFromRequest).containsAll(demo1));
 
-
-		// Delete All Instance
-//		this.client.delete(url + "/admin/instances/2022a.tomer/user@gmail.com");
 	}
 
 
 }
+
+// TODO: 03/12/2021 getAllParents
+/*
+CRUD:
+
+URL:
+
+Content-Type: (sent object):
+
+Accept (returns):
+
+BODY:
+
+ */
 
 // TODO: 03/12/2021 getAllParents
 /*

@@ -1,7 +1,9 @@
 package iob.controllers;
 
 import iob.boundaries.InstanceBoundary;
+import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.InstanceIdBoundary;
+import iob.boundaries.helpers.UserIdBoundary;
 import iob.logic.InstanceWIthBindingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -28,6 +30,9 @@ public class InstanceController {
     @PostMapping(path = "/{userDomain}/{userEmail}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public InstanceBoundary createInstance(@RequestBody InstanceBoundary newInstance,
                                            @PathVariable("userDomain") String userDomain, @PathVariable("userEmail") String userEmail) {
+        CreatedByBoundary creatorOfInstance = new CreatedByBoundary(new UserIdBoundary(userDomain, userEmail));
+        newInstance.setCreatedBy(creatorOfInstance);
+
         return instancesService.createInstance(userDomain, userEmail, newInstance);
     }
 
