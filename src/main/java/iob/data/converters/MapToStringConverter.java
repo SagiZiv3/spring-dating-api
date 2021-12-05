@@ -3,8 +3,10 @@ package iob.data.converters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 import java.util.Map;
 
+@Converter
 public class MapToStringConverter implements AttributeConverter<Map<String, Object>, String> {
     private final ObjectMapper jackson;
 
