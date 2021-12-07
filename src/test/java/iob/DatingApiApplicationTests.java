@@ -46,7 +46,7 @@ class InstancesAPITests {
 
 		//		Test by length
 		assertEquals((returnedB4Insertion.length + demo1.size()), returnedFromRequest.length);
-//		assert(List.of(returnedFromRequest).containsAll(demo1));
+		assertThat(returnedFromRequest).containsAll(demo1);
 
 	}
 
