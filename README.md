@@ -1,9 +1,13 @@
 # Dating APP (Spring API)
 
 ## References:
-1. `lombok` annotation - https://medium.com/@udith.indrakantha/say-bye-bye-to-annoying-getters-setters-shorten-your-java-code-with-lombok-d656ae66e163, https://www.baeldung.com/intro-to-project-lombok
+1. `lombok` annotation
+   - https://medium.com/@udith.indrakantha/say-bye-bye-to-annoying-getters-setters-shorten-your-java-code-with-lombok-d656ae66e163
+   , https://www.baeldung.com/intro-to-project-lombok
 2. `lombok` in VS Code - https://stackoverflow.com/iob/51334122
 3. `RequestMapping` and `GetMapping` - https://stackoverflow.com/iob/53132931
+4. Complex primary keys - https://stackoverflow.com/questions/41143913/sql-jpa-multiple-columns-as-primary-key
+5. HTTP status codes - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 
 ---
 **Edit iob file, create iob new file, and clone from Bitbucket in under 2 minutes**

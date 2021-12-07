@@ -3,8 +3,13 @@ package iob;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.NewUserBoundary;
 import iob.boundaries.converters.InstanceConverter;
-import iob.boundaries.helpers.*;
-import org.junit.jupiter.api.*;
+import iob.boundaries.helpers.InstanceIdBoundary;
+import iob.boundaries.helpers.Location;
+import iob.boundaries.helpers.UserRoleBoundary;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,23 +18,35 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-
-import java.util.*;
+import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class InstancesAPITests {
-	// Enable access from everywhere using: InstanceAPITests.KEYS.{___}
-	public interface KEYS{
-		final String USER_EMAIL = "user@gmail.com";
-		final String USERNAME = "InstancesAPITests_InvokingUser";
-		final String USER_AVATAR = "InvokingUser";
-		final String INSTANCE_TYPE = "dummyInstanceType";
-		final String INSTANCE_NAME = "dummyInstanceName";
+	@Test
+	public void testGetAllInstances() {
+		// GIVEN
+		// we have instances in the program
+
+		InstanceBoundary[] returnedB4Insertion = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
+				InstanceBoundary[].class);
+
+		ArrayList<InstanceBoundary> demo1 = new ArrayList<>();
+
+		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_0"));
+		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_1"));
+		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_2"));
+
+		// Get all instances
+		InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
+				InstanceBoundary[].class);
+
+		//		Test by length
+		assertEquals((returnedB4Insertion.length + demo1.size()), returnedFromRequest.length);
+//		assert(List.of(returnedFromRequest).containsAll(demo1));
 
 	}
 
@@ -157,33 +174,19 @@ class InstancesAPITests {
 
 		// Get all instances
 		InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
-																			InstanceBoundary[].class);
+				InstanceBoundary[].class);
 		// check that we dont have any users inside
 		assertThat(returnedFromRequest).isEmpty();
 
 	}
 
-	@Test
-	public void testGetAllInstances(){
-		// GIVEN
-		// we have instances in the program
-
-		InstanceBoundary[] returnedB4Insertion = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
-				InstanceBoundary[].class);
-
-		ArrayList<InstanceBoundary> demo1 = new ArrayList<>();
-
-		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_0"));
-		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME+ "_1"));
-		demo1.add(addDummyInstance(KEYS.INSTANCE_NAME+ "_2"));
-
-		// Get all instances
-		InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
-				InstanceBoundary[].class);
-
-		//		Test by length
-		assertEquals((returnedB4Insertion.length + demo1.size()), returnedFromRequest.length);
-		assert(List.of(returnedFromRequest).containsAll(demo1));
+	// Enable access from everywhere using: InstanceAPITests.KEYS.{___}
+	public interface KEYS {
+		String USER_EMAIL = "user@gmail.com";
+		String USERNAME = "InstancesAPITests_InvokingUser";
+		String USER_AVATAR = "InvokingUser";
+		String INSTANCE_TYPE = "dummyInstanceType";
+		String INSTANCE_NAME = "dummyInstanceName";
 
 	}
 
@@ -266,4 +269,3 @@ BODY:
     "id": "1"
 	}
  */
-
