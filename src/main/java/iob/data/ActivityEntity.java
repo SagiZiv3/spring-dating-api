@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -24,13 +23,13 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @Entity
 @Table(name = "ACTIVITIES")
 @IdClass(ActivityPrimaryKey.class)
@@ -60,4 +59,17 @@ public class ActivityEntity {
     @Convert(converter = MapToStringConverter.class)
     private Map<String, Object> activityAttributes;
     //</editor-fold>
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, domain);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ActivityEntity entity = (ActivityEntity) o;
+        return id == entity.id && domain.equals(entity.domain);
+    }
 }

@@ -3,10 +3,14 @@ package iob.data;
 import iob.data.converters.MapToStringConverter;
 import iob.data.embeddedentities.LocationEntity;
 import iob.data.primarykeys.InstancePrimaryKey;
+import iob.logic.exceptions.instance.InvalidBindingOperationException;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Convert;
 import javax.persistence.Embedded;
@@ -34,7 +38,9 @@ import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Getter
+@Setter
+@RequiredArgsConstructor
 @Entity
 @Table(name = "INSTANCES")
 @IdClass(InstancePrimaryKey.class)
@@ -64,6 +70,7 @@ public class InstanceEntity {
     @Embedded
     private LocationEntity location = new LocationEntity();
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private UserEntity createdBy;
     @Lob
     @Convert(converter = MapToStringConverter.class)
@@ -95,13 +102,13 @@ public class InstanceEntity {
 
     public void addParent(InstanceEntity parent) {
         if (this.equals(parent))
-            throw new RuntimeException("Cannot assign parent to himself");
+            throw new InvalidBindingOperationException("Cannot assign parent to himself");
         parentInstances.add(parent);
     }
 
     public void addChild(InstanceEntity child) {
         if (this.equals(child))
-            throw new RuntimeException("Cannot assign child to himself");
+            throw new InvalidBindingOperationException("Cannot assign child to himself");
         childInstances.add(child);
     }
 
