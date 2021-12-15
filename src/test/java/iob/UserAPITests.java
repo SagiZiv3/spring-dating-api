@@ -19,9 +19,10 @@ import javax.annotation.PostConstruct;
 public class UserAPITests {
     // Enable access from everywhere using: UserAPITests.KEYS.{___}
     public interface KEYS {
-        final String USER_EMAIL = "Shahar@sagi.com";
+        final String USER_EMAIL = "Shahar@userApiTest.com";
         final String USERNAME = "InstancesAPITests_InvokingUser";
-        final String USER_AVATAR = "InvokingUser";
+        final String USER_AVATAR = "InvokingUser_userApiTest";
+
     }
 
     @Value("${spring.application.name:dummy}")

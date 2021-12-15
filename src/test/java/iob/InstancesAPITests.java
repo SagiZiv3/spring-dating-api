@@ -39,12 +39,7 @@ class InstancesAPITests {
     public void testGetAllInstances() {
         // GIVEN
         // we have instances in the program
-
-        InstanceBoundary[] returnedB4Insertion = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
-                InstanceBoundary[].class);
-
         ArrayList<InstanceBoundary> demo1 = new ArrayList<>();
-
         demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_0"));
         demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_1"));
         demo1.add(addDummyInstance(KEYS.INSTANCE_NAME + "_2"));
@@ -53,9 +48,8 @@ class InstancesAPITests {
         InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
                 InstanceBoundary[].class);
 
-        //		Test by length
-        assertEquals((returnedB4Insertion.length + demo1.size()), returnedFromRequest.length);
         assertThat(returnedFromRequest).containsAll(demo1);
+
 
     }
 
@@ -185,85 +179,109 @@ class InstancesAPITests {
         String USER_AVATAR = "InvokingUser";
         String INSTANCE_TYPE = "dummyInstanceType";
         String INSTANCE_NAME = "dummyInstanceName";
+    }
+
+
+
+    // TODO: 03/12/2021 bindChildToInstance
+    @Test
+    public void testBindChildToInstance(){
+        // GIVEN we have 2 instances
+
+        // WHEN: we set one of them to be the other's child ??? TODO: Make sure its true
+
+
+        // THEN: We will bind them as array (or arraylist??)
+
+//        InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com"
+//                        + domainName + "/" + id.getId(),
+//                InstanceBoundary[].class);
+
+        /* ___________________________________________________________________________
+        CRUD:
+            PUT
+        URL:
+            http://localhost:8091/iob/instances/2022a/mail/2022a.Tomer.Dwek/3/children
+
+        Content-Type: (sent object):
+            Application/json
+        Accept (returns):
+            __None__ ??? HOW?? it should return an object isn't it?
+        BODY:
+            {
+            "domain": "2022a.Tomer.Dwek",
+            "id": "1"
+            }
+         */
+
 
     }
 
 
+    // TODO: 03/12/2021 getAllParents
+    @Test
+    public void testGetAllParents(){
+        // GIVEN we have instance with parents
+
+        // WHEN: we ask to see all it's parents
+
+
+        // THEN: We will get a them as array (or arraylist??)
+
+//        InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com"
+//                        + domainName + "/" + id.getId(),
+//                InstanceBoundary[].class);
+
+
+                /*____________________________________________________________
+        CRUD:
+            GET
+        URL:
+            http://localhost:8091/iob/instances/2022a.tomer/user@gmail.com/2022a.Tomer.Dwek/1/parents
+
+        Content-Type: (sent object):
+            __None__
+        Accept (returns):
+            __None__ ??? HOW?? it should return an object isn't it?
+        BODY:
+
+         */
+
+    }
+
+    // TODO: 03/12/2021 getInstance
+    @Test
+    public void testGetAllChildren(){
+        // GIVEN we have instance with parents
+
+        // WHEN: we ask to see all it's parents
+
+
+        // THEN: We will get a them as array (or arraylist??)
+
+//        InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com"
+//                        + domainName + "/" + id.getId(),
+//                InstanceBoundary[].class);
+
+
+          /* ____________________________________________________________
+        CRUD:
+            GET
+        URL:
+            http://localhost:8091/iob/instances/2022a.tomer/user@gmail.com/2022a.Tomer.Dwek/3/children
+
+        Content-Type: (sent object):
+            __None__
+        Accept (returns):
+            __None__ ??? HOW?? it should return an object isn't it?
+        BODY:
+
+         */
+
+    }
+
 }
 
-// TODO: 03/12/2021 getAllParents
-/*
-CRUD:
 
-URL:
 
-Content-Type: (sent object):
 
-Accept (returns):
-
-BODY:
-
- */
-
-// TODO: 03/12/2021 getAllParents
-/*
-CRUD:
-    GET
-URL:
-    http://localhost:8091/iob/instances/2022a.tomer/user@gmail.com/2022a.Tomer.Dwek/1/parents
-
-Content-Type: (sent object):
-    __None__
-Accept (returns):
-    __None__ ??? HOW?? it should return an object isn't it?
-BODY:
-
- */
-
-// TODO: 03/12/2021 getAllChildren
-/*
-CRUD:
-    GET
-URL:
-    http://localhost:8091/iob/instances/2022a.tomer/user@gmail.com/2022a.Tomer.Dwek/3/children
-
-Content-Type: (sent object):
-    __None__
-Accept (returns):
-    __None__ ??? HOW?? it should return an object isn't it?
-BODY:
-
- */
-
-// TODO: 03/12/2021 getInstance
-/*
-CRUD:
-    GET
-URL:
-    http://localhost:8091/iob/instances/2022a.tomer/user@gmail.com/2022a.Tomer.Dwek/1
-
-Content-Type: (sent object):
-    __None__
-Accept (returns):
-    __None__ ??? HOW?? it should return an object isn't it?
-BODY:
-
- */
-
-// TODO: 03/12/2021 bindChildToInstance
-/*
-CRUD:
-    PUT
-URL:
-    http://localhost:8091/iob/instances/2022a/mail/2022a.Tomer.Dwek/3/children
-
-Content-Type: (sent object):
-    Application/json
-Accept (returns):
-    __None__ ??? HOW?? it should return an object isn't it?
-BODY:
-	{
-    "domain": "2022a.Tomer.Dwek",
-    "id": "1"
-	}
- */
