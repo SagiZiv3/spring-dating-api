@@ -35,6 +35,15 @@ class InstancesAPITests {
     private RestTemplate client; //  helper object to invoke HTTP requests
     private String url; // used to represent the URL used to access the server
 
+    // Enable access from everywhere using: InstanceAPITests.KEYS.{___}
+    public interface KEYS {
+        String USER_EMAIL = "user@gmail.com";
+        String USERNAME = "InstancesAPITests_InvokingUser";
+        String USER_AVATAR = "InvokingUser";
+        String INSTANCE_TYPE = "dummyInstanceType";
+        String INSTANCE_NAME = "dummyInstanceName";
+    }
+
     @Test
     public void testGetAllInstances() {
         // GIVEN
@@ -172,14 +181,7 @@ class InstancesAPITests {
 
     }
 
-    // Enable access from everywhere using: InstanceAPITests.KEYS.{___}
-    public interface KEYS {
-        String USER_EMAIL = "user@gmail.com";
-        String USERNAME = "InstancesAPITests_InvokingUser";
-        String USER_AVATAR = "InvokingUser";
-        String INSTANCE_TYPE = "dummyInstanceType";
-        String INSTANCE_NAME = "dummyInstanceName";
-    }
+
 
 
 
@@ -188,6 +190,8 @@ class InstancesAPITests {
     public void testBindChildToInstance(){
         // GIVEN we have 2 instances
 
+        InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "/instances/2022a.tomer/user@gmail.com",
+                InstanceBoundary[].class);
         // WHEN: we set one of them to be the other's child ??? TODO: Make sure its true
 
 
@@ -198,6 +202,7 @@ class InstancesAPITests {
 //                InstanceBoundary[].class);
 
         /* ___________________________________________________________________________
+        testBindChildToInstance :
         CRUD:
             PUT
         URL:
