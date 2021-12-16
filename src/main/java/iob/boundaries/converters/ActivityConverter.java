@@ -40,7 +40,7 @@ public class ActivityConverter {
     }
 
     private InvokedByBoundary toInvokedByBoundary(UserEntity userEntity) {
-        return new InvokedByBoundary(userConverter.toUserIdBoundary(userEntity.getEmail(), userEntity.getDomain()));
+        return new InvokedByBoundary(userConverter.toUserIdBoundary(userEntity.getDomain(), userEntity.getEmail()));
     }
 
     public ActivityIdBoundary toActivityIdBoundary(String domain, long id) {

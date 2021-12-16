@@ -20,7 +20,6 @@ import java.util.stream.StreamSupport;
 public class ActivitiesServiceJpa implements ActivitiesService {
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
-    @Value("${spring.application.name:dummy}")
     private String domainName;
 
     @Autowired
@@ -68,5 +67,10 @@ public class ActivitiesServiceJpa implements ActivitiesService {
     @Transactional
     public void deleteAllActivities(String adminDomain, String adminEmail) {
         activitiesDao.deleteAll();
+    }
+
+    @Value("${spring.application.name:dummy}")
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
     }
 }

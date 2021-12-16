@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UserConverter {
-    @Value("${spring.application.name:dummy}")
     private String applicationDomainName;
 
     public UserBoundary toBoundary(@NonNull UserEntity entity) {
@@ -68,5 +67,10 @@ public class UserConverter {
 
     public UserPrimaryKey toUserPrimaryKey(String email, String domain) {
         return new UserPrimaryKey(domain, email);
+    }
+
+    @Value("${spring.application.name:dummy}")
+    public void setDomainName(String domainName) {
+        this.applicationDomainName = domainName;
     }
 }

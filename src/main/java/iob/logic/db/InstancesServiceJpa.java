@@ -19,11 +19,9 @@ import java.util.stream.StreamSupport;
 
 @Service
 public class InstancesServiceJpa implements InstanceWIthBindingsService {
-    @Value("${spring.application.name:dummy}")
     private String domainName;
     private final InstancesDao instancesDao;
     private final InstanceConverter instanceConverter;
-
 
     @Autowired
     public InstancesServiceJpa(InstancesDao instancesDao, InstanceConverter converter) {
@@ -136,5 +134,10 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
         return parent.getChildInstances().stream()
                 .map(this.instanceConverter::toBoundary)
                 .collect(Collectors.toList());
+    }
+
+    @Value("${spring.application.name:dummy}")
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
     }
 }

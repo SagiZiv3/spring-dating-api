@@ -81,11 +81,11 @@ public class InstanceEntity {
     // Define a new table that would store the references
     @JoinTable(name = "INSTANCES_TO_INSTANCES",
             // The main columns for this attribute are the parent's primary key which is constructed from domain and id
-            joinColumns = {@JoinColumn(name = "PARENT_ID", referencedColumnName = "id"),
+            inverseJoinColumns = {@JoinColumn(name = "PARENT_ID", referencedColumnName = "id"),
                     @JoinColumn(name = "PARENT_DOMAIN", referencedColumnName = "domain")},
 
             // The referenced columns for this attribute are the child's primary key which is also constructed from domain and id
-            inverseJoinColumns = {@JoinColumn(name = "CHILD_ID", referencedColumnName = "id"),
+            joinColumns = {@JoinColumn(name = "CHILD_ID", referencedColumnName = "id"),
                     @JoinColumn(name = "CHILD_DOMAIN", referencedColumnName = "domain")})
     // Declare the parent's side of the relation
     @ManyToMany(fetch = FetchType.LAZY)

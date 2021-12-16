@@ -16,7 +16,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Lob;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -51,9 +51,9 @@ public class ActivityEntity {
     private String type;
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdTimestamp;
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private InstanceEntity instance;
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity invokedBy;
     @Lob
     @Convert(converter = MapToStringConverter.class)
