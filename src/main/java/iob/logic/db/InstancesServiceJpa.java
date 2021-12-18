@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 public class InstancesServiceJpa implements PagedInstancesService {
@@ -75,12 +74,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @Transactional(readOnly = true)
     @Deprecated
     public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
-        return StreamSupport
-                .stream(this.instancesDao
-                        .findAll()
-                        .spliterator(), false)
-                .map(this.instanceConverter::toBoundary)
-                .collect(Collectors.toList());
+        throw new RuntimeException("Unimplemented deprecated operation");
     }
 
     @Override
