@@ -3,21 +3,24 @@ package iob.logic.db;
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.converters.ActivityConverter;
 import iob.data.ActivityEntity;
-import iob.logic.ActivitiesService;
 import iob.logic.db.dao.ActivitiesDao;
 import iob.logic.exceptions.InvalidInputException;
+import iob.logic.pagedservices.PagedActivitiesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
-public class ActivitiesServiceJpa implements ActivitiesService {
+public class ActivitiesServiceJpa implements PagedActivitiesService {
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
     private String domainName;
@@ -55,11 +58,22 @@ public class ActivitiesServiceJpa implements ActivitiesService {
 
     @Override
     @Transactional(readOnly = true)
+    @Deprecated
     public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
-        return StreamSupport.stream(
-                        activitiesDao.findAll()
-                                .spliterator(), false
-                ).map(this.activityConverter::toBoundary)
+        throw new RuntimeException("Unimplemented deprecated operation");
+    }
+
+    @Override
+    public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail, int page, int size) {
+        Sort.Direction direction = Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
+
+        Page<ActivityEntity> resultPage = this.activitiesDao
+                .findAll(pageable);
+
+        return resultPage
+                .stream()
+                .map(this.activityConverter::toBoundary)
                 .collect(Collectors.toList());
     }
 
