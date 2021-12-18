@@ -11,6 +11,7 @@ import iob.logic.exceptions.user.UserNotFoundException;
 import iob.logic.exceptions.user.UserPermissionException;
 import iob.logic.pagedservices.PagedUsersService;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class UsersServiceJpa implements PagedUsersService {
     private final UserConverter userConverter;
     private final UsersDao usersDao;
@@ -36,15 +38,19 @@ public class UsersServiceJpa implements PagedUsersService {
     @Override
     @Transactional
     public UserBoundary createUser(UserBoundary user) {
+        log.info("Validating user");
         validateUser(user);
         UserEntity entityToStore = this.userConverter.toEntity(user);
+        log.info("Converted to entity: {}", entityToStore);
 
         // Make sure the user doesn't already exist.
         if (usersDao.existsById(userConverter.toUserPrimaryKey(entityToStore.getEmail(), entityToStore.getDomain()))) {
+            log.error("User with email {} already exists in domain {}", entityToStore.getEmail(), entityToStore.getDomain());
             throw new UserExistsException(entityToStore.getDomain(), entityToStore.getEmail());
         }
 
         entityToStore = usersDao.save(entityToStore);
+        log.info("User was saved in DB: {}", entityToStore);
 
         return userConverter.toBoundary(entityToStore);
     }
@@ -52,16 +58,19 @@ public class UsersServiceJpa implements PagedUsersService {
     @Override
     @Transactional(readOnly = true)
     public UserBoundary login(String userDomain, String userEmail) {
+        log.info("Searching user in DB");
         UserEntity entity = findUserInStorage(userDomain, userEmail);
-
+        log.info("User from DB: {}", entity);
         return userConverter.toBoundary(entity);
     }
 
     @Override
     @Transactional
     public UserBoundary updateUser(String userDomain, String userEmail, UserBoundary update) {
+        log.info("Searching user in DB");
         UserEntity entity = findUserInStorage(userDomain, userEmail);
 
+        log.info("Updating user's data");
         if (update.getRole() != null) {
             entity.setRole(UserRole.valueOf(update.getRole().name()));
         }
@@ -73,6 +82,7 @@ public class UsersServiceJpa implements PagedUsersService {
         }
 
         entity = usersDao.save(entity);
+        log.info("Modified user was saved in DB: {}", entity);
         return userConverter.toBoundary(entity);
     }
 
@@ -80,27 +90,16 @@ public class UsersServiceJpa implements PagedUsersService {
     @Transactional(readOnly = true)
     @Deprecated
     public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail) {
+        log.error("Called deprecated method");
         throw new RuntimeException("Unimplemented deprecated operation");
-    }
-
-    @Override
-    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail, int page, int size) {
-        Sort.Direction direction = Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
-
-        Page<UserEntity> resultPage = this.usersDao
-                .findAll(pageable);
-
-        return resultPage
-                .stream()
-                .map(this.userConverter::toBoundary)
-                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void deleteAllUsers(String adminDomain, String adminEmail) {
+        log.info("Checking user's permission");
         checkIfAdmin(adminDomain, adminEmail);
+        log.info("Deleting all users");
         usersDao.deleteAll();
     }
 
@@ -112,7 +111,7 @@ public class UsersServiceJpa implements PagedUsersService {
      */
     private void validateUser(@NonNull UserBoundary userBoundary) {
         // Make sure the given email is valid
-        if (!validateEmail(userBoundary.getUserId().getEmail())) {
+        if (userBoundary.getUserId().getEmail() == null || !validateEmail(userBoundary.getUserId().getEmail())) {
             throw new InvalidInputException("email", userBoundary.getUserId().getEmail());
         }
         if (userBoundary.getUsername() == null || userBoundary.getUsername().isEmpty()) {
@@ -130,10 +129,27 @@ public class UsersServiceJpa implements PagedUsersService {
      * @return `true` if the email is valid, `false` otherwise.
      * @see <a href="https://www.baeldung.com/java-email-validation-regex#:~:text=The%20simplest%20regular%20expression%20to,otherwise%2C%20the%20result%20is%20false">Source</a>
      */
-    private boolean validateEmail(@NonNull String email) {
+    private boolean validateEmail(String email) {
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9\\+_-]+(\\.[A-Za-z0-9\\+_-]+)*@"
                 + "[^-][A-Za-z0-9\\+-]+(\\.[A-Za-z0-9\\+-]+)*(\\.[A-Za-z]{2,})$";
         return email.matches(regexPattern);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail, int page, int size) {
+        log.info("Getting {} users from page {}", size, page);
+        Sort.Direction direction = Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
+
+        Page<UserEntity> resultPage = this.usersDao
+                .findAll(pageable);
+
+        log.info("Converting results to boundaries");
+        return resultPage
+                .stream()
+                .map(this.userConverter::toBoundary)
+                .collect(Collectors.toList());
     }
 
     /**
