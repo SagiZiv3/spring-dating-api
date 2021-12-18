@@ -79,7 +79,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
 
     @Override
     public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail, int page, int size) {
-        Sort.Direction direction = Sort.Direction.ASC;
+        Sort.Direction direction = Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
 
         Page<InstanceEntity> resultPage = this.instancesDao

@@ -65,7 +65,7 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
 
     @Override
     public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail, int page, int size) {
-        Sort.Direction direction = Sort.Direction.ASC;
+        Sort.Direction direction = Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
 
         Page<ActivityEntity> resultPage = this.activitiesDao
