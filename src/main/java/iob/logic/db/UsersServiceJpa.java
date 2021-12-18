@@ -95,6 +95,23 @@ public class UsersServiceJpa implements PagedUsersService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail, int page, int size) {
+        log.info("Getting {} users from page {}", size, page);
+        Sort.Direction direction = Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
+
+        Page<UserEntity> resultPage = this.usersDao
+                .findAll(pageable);
+
+        log.info("Converting results to boundaries");
+        return resultPage
+                .stream()
+                .map(this.userConverter::toBoundary)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public void deleteAllUsers(String adminDomain, String adminEmail) {
         log.info("Checking user's permission");
@@ -133,23 +150,6 @@ public class UsersServiceJpa implements PagedUsersService {
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9\\+_-]+(\\.[A-Za-z0-9\\+_-]+)*@"
                 + "[^-][A-Za-z0-9\\+-]+(\\.[A-Za-z0-9\\+-]+)*(\\.[A-Za-z]{2,})$";
         return email.matches(regexPattern);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail, int page, int size) {
-        log.info("Getting {} users from page {}", size, page);
-        Sort.Direction direction = Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
-
-        Page<UserEntity> resultPage = this.usersDao
-                .findAll(pageable);
-
-        log.info("Converting results to boundaries");
-        return resultPage
-                .stream()
-                .map(this.userConverter::toBoundary)
-                .collect(Collectors.toList());
     }
 
     /**
