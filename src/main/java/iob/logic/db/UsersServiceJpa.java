@@ -4,23 +4,26 @@ import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.UserConverter;
 import iob.data.UserEntity;
 import iob.data.UserRole;
-import iob.logic.UsersService;
 import iob.logic.db.dao.UsersDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.user.UserExistsException;
 import iob.logic.exceptions.user.UserNotFoundException;
 import iob.logic.exceptions.user.UserPermissionException;
+import iob.logic.pagedservices.PagedUsersService;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
-public class UsersServiceJpa implements UsersService {
+public class UsersServiceJpa implements PagedUsersService {
     private final UserConverter userConverter;
     private final UsersDao usersDao;
 
@@ -75,12 +78,21 @@ public class UsersServiceJpa implements UsersService {
 
     @Override
     @Transactional(readOnly = true)
+    @Deprecated
     public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail) {
-        checkIfAdmin(adminDomain, adminEmail);
-        return StreamSupport
-                .stream(this.usersDao
-                        .findAll()
-                        .spliterator(), false)
+        throw new RuntimeException("Unimplemented deprecated operation");
+    }
+
+    @Override
+    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail, int page, int size) {
+        Sort.Direction direction = Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
+
+        Page<UserEntity> resultPage = this.usersDao
+                .findAll(pageable);
+
+        return resultPage
+                .stream()
                 .map(this.userConverter::toBoundary)
                 .collect(Collectors.toList());
     }
