@@ -1,6 +1,5 @@
 package iob;
 
-import com.sun.source.tree.AssertTree;
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.NewUserBoundary;
@@ -19,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
 
-
 import javax.annotation.PostConstruct;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,9 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ActivityApiTests {
     // Enable access from everywhere using: UserAPITests.KEYS.{___}
     public interface KEYS {
-        final String USER_EMAIL = "Shahar@sagi.com";
-        final String USERNAME = "InstancesAPITests_InvokingUser";
-        final String USER_AVATAR = "InvokingUser";
+        String USER_EMAIL = "Shahar@sagi.com";
+        String USERNAME = "InstancesAPITests_InvokingUser";
+        String USER_AVATAR = "InvokingUser";
     }
 
     @Value("${spring.application.name:dummy}")
@@ -144,5 +142,3 @@ public class ActivityApiTests {
 
     }
 }
-
-
