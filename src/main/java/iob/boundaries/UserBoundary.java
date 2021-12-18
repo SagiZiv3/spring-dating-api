@@ -2,13 +2,11 @@ package iob.boundaries;
 
 import iob.boundaries.helpers.UserIdBoundary;
 import iob.boundaries.helpers.UserRoleBoundary;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 @ToString
 public class UserBoundary {

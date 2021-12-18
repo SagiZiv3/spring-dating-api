@@ -40,6 +40,7 @@ public class UserConverter {
         boundary.setUsername(newUser.getUsername());
         boundary.setRole(newUser.getRole());
         boundary.setAvatar(newUser.getAvatar());
+        System.out.println("UserConverter - toBoundary - " + boundary.getUserId().getDomain());
         return boundary;
     }
 

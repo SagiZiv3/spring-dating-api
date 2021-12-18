@@ -1,8 +1,12 @@
 package iob;
 
+import iob.boundaries.InstanceBoundary;
 import iob.boundaries.NewUserBoundary;
+import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.InstanceConverter;
+import iob.boundaries.converters.UserConverter;
 import iob.boundaries.helpers.UserRoleBoundary;
+import iob.controllers.UserController;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -14,14 +18,32 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserAPITests {
+    UserConverter userConverter;
     // Enable access from everywhere using: UserAPITests.KEYS.{___}
     public interface KEYS {
-        final String USER_EMAIL = "Shahar@sagi.com";
-        final String USERNAME = "InstancesAPITests_InvokingUser";
-        final String USER_AVATAR = "InvokingUser";
+        final String USER_EMAIL = "UserAPITests_Shahar@userApiTest.com";
+        final String USERNAME = "UserAPITests_InvokingUser";
+        final String USER_AVATAR = "UserAPITests_USER_AVATAR";
+        final String USER_EMAIL_Player = "UserAPITests_Player@userApiTest.com";
+        final String USERNAME_Player = "UserAPITests_InvokingUser_Player";
+        final String USER_AVATAR_Player = "UserAPITests_USER_AVATAR_Player";
+
+    }
+
+    @Autowired
+    public UserAPITests(UserConverter userConverter_whereFrom) {
+        this.userConverter = userConverter_whereFrom;
+
     }
 
     @Value("${spring.application.name:dummy}")
@@ -58,66 +80,149 @@ public class UserAPITests {
     void contextLoads() {
     }
 
-}
+    @Test
+    public void testCreateUSer(){
+        // Adding user to server
+        NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
+        this.client.postForObject(this.url + "/users",
+                insertMe,
+                NewUserBoundary.class);
 
-// TODO: 03/12/2021 createUser
-/*
-CRUD:
-    GET
-URL:
-     http://localhost:8091/iob/users/login/2022a.Tomer.Dwek/us_er33@ab.com
 
-Content-Type: (sent object):
-    __None__
-Accept (returns):
-    __None__
-BODY:
-    __None__
- */
+        NewUserBoundary[] returnedFromRequest = this.client.getForObject(this.url + "/admin/users/"+ "/" + domainName + "/" + KEYS.USER_EMAIL,
+                                    NewUserBoundary[].class);
 
-// TODO: 03/12/2021 getUser
-/*
-CRUD:
-    GET
-URL:
-    http://localhost:8091/iob/users/login/2022a.Tomer.Dwek/us_er33@ab.com
+        // FIXME // How to Compare UserBoundary to NewUserBoundary? 15/12/2021 Maybe convert one of them to the other, or check specific fields? Consult with everyone..
+        // TODO: 15/12/2021 Test Failed: The returned objects does not contain the User's email (null instead). FIXME
+        assertThat(returnedFromRequest).contains(insertMe);
 
-Content-Type: (sent object):
-    __None__
-Accept (returns):
-    __None__ ??? HOW?? it should return an object isn't it?
-BODY:
+        /*
+        CRUD:
+            GET
+        URL:
+             http://localhost:8091/iob/users/login/2022a.Tomer.Dwek/us_er33@ab.com
 
- */
+        Content-Type: (sent object):
+            __None__
+        Accept (returns):
+            __None__
+        BODY:
+            __None__
+         */
 
-// TODO: 03/12/2021 getAllUsers
-/*
-CRUD:
-    GET
-URL:
-    http://localhost:8091/iob/admin/users/2022a.Tomer.Dwek/aa@bb.com
-Content-Type: (sent object):
-    __None__
-Accept (returns):
-    __None__
-BODY:
-    __None__
- */
-// TODO: 03/12/2021 updateUser
-/*
-CRUD:
-    PUT
-URL:
-    http://localhost:8091/iob/users/2022a.Tomer.Dwek/aa@bb.com
-Content-Type: (sent object):
-    __None__
-Accept (returns):
-    __None__
-BODY:
-    {
-    "role":"ADMIN",
-    "username":"MY USER Nameeee"
     }
 
- */
+    @Test
+    public void testGetUser(){
+        // Adding user to server
+        NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
+        this.client.postForObject(this.url + "/users",
+                insertMe,
+                NewUserBoundary.class);
+
+        // get user from server
+        UserBoundary returnedFromRequest = this.client.getForObject(this.url + "/users"+ "/login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
+                UserBoundary.class);
+
+
+
+        assertThat(returnedFromRequest.getUserId().getEmail()).isEqualTo(insertMe.getEmail());
+        assertThat(returnedFromRequest.getUserId().getDomain()).isEqualTo(domainName);
+//        assertThat(returnedFromRequest).isEqualTo(insertMe);
+
+        // TODO: 03/12/2021 getUser
+        /*
+        CRUD:
+            GET
+        URL:
+            http://localhost:8091/iob/users/login/2022a.Tomer.Dwek/us_er33@ab.com
+
+        Content-Type: (sent object):
+            __None__
+        Accept (returns):
+            __None__ ??? HOW?? it should return an object isn't it?
+        BODY:
+
+         */
+    }
+
+    @Test
+    public void testGetAllUsers()
+    {
+        ArrayList<NewUserBoundary> insertUs = new ArrayList<>();
+        insertUs.add(new NewUserBoundary("0_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_0", KEYS.USER_AVATAR_Player + "_0"));
+        insertUs.add(new NewUserBoundary("1_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_1", KEYS.USER_AVATAR_Player + "_1"));
+        insertUs.add(new NewUserBoundary("2_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_2", KEYS.USER_AVATAR_Player + "_2"));
+        // Adding users to server
+        for (NewUserBoundary newUserBoundary : insertUs){
+            this.client.postForObject(this.url + "/users",
+                    newUserBoundary,
+                    NewUserBoundary.class);
+
+        }
+        // Getting all users from server
+        UserBoundary[] returnedFromRequest = this.client.getForObject(this.url + "/admin/users/" + domainName + "/" + KEYS.USER_EMAIL,
+                UserBoundary[].class);
+
+
+        // Convert inserted elements insertUs to UserBoundary (will enable the usage of containsAll)
+        List<UserBoundary> insertedAsUserBoundary = insertUs.stream().map(userConverter::toBoundary).collect(Collectors.toList());
+
+
+        assertThat(returnedFromRequest).containsAll(insertedAsUserBoundary);
+
+    }
+
+
+
+    @Test
+    public void testModifyUser(){
+        // TODO: 03/12/2021 updateUser
+        // Adding user to server
+        NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
+        this.client.postForObject(this.url + "/users",
+                insertMe,
+                NewUserBoundary.class);
+
+        // Send update to server
+        NewUserBoundary updatedVersion = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player + "_Updated_");
+        this.client.put(this.url + "/users/"  + domainName +  "/" + KEYS.USER_EMAIL_Player,
+                updatedVersion);
+
+
+        // get user from server
+        UserBoundary returnedFromServer = this.client.getForObject(this.url + "/users/"+ "login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
+                UserBoundary.class);
+
+        // FIXME // How to Compare UserBoundary to NewUserBoundary? 15/12/2021 Maybe convert one of them to the other, or check specific fields? Consult with everyone..
+//        UserController uc = new UserController();
+//        assertThat(returnedFromServer).isEqualTo(userCovupdatedVersion);
+
+        /*
+        CRUD:
+            PUT
+        URL:
+            http://localhost:8091/iob/users/2022a.Tomer.Dwek/aa@bb.com
+        Content-Type: (sent object):
+            __None__
+        Accept (returns):
+            __None__
+        BODY:
+            {
+            "role":"ADMIN",
+            "username":"MY USER Nameeee"
+            }
+
+         */
+
+
+
+    }
+
+}
+
+
+
+
+
 
