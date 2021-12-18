@@ -7,6 +7,7 @@ import iob.logic.db.dao.InstancesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.instance.InstanceNotFoundException;
 import iob.logic.pagedservices.PagedInstancesService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class InstancesServiceJpa implements PagedInstancesService {
     private String domainName;
     private final InstancesDao instancesDao;
@@ -35,12 +37,15 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @Override
     @Transactional
     public InstanceBoundary createInstance(String userDomain, String userEmail, InstanceBoundary instance) {
+        log.info("Validating instance");
         validateInstance(instance);
         InstanceEntity entityToStore = instanceConverter.toEntity(instance);
         entityToStore.setCreatedTimestamp(new Date());
         entityToStore.setDomain(domainName);
+        log.info("Converted to entity: {}", entityToStore);
 
         entityToStore = instancesDao.save(entityToStore);
+        log.info("Saved instance: {}", entityToStore);
 
         return instanceConverter.toBoundary(entityToStore);
     }
@@ -48,43 +53,50 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @Override
     @Transactional
     public InstanceBoundary updateInstance(String userDomain, String userEmail, String instanceDomain, String instanceId, InstanceBoundary update) {
-        InstanceEntity existing = findInstance(instanceDomain, instanceId);
+        log.info("Searching instance in DB");
+        InstanceEntity entity = findInstance(instanceDomain, instanceId);
 
+        log.info("Updating instance's data");
         if (update.getActive() != null) {
-            existing.setActive(update.getActive());
+            entity.setActive(update.getActive());
         }
         if (update.getInstanceAttributes() != null) {
-            existing.setInstanceAttributes(update.getInstanceAttributes());
+            entity.setInstanceAttributes(update.getInstanceAttributes());
         }
         if (update.getLocation() != null) {
-            existing.setLocation(instanceConverter.toLocationEntity(update.getLocation()));
+            entity.setLocation(instanceConverter.toLocationEntity(update.getLocation()));
         }
         if (update.getName() != null && !update.getName().isEmpty()) {
-            existing.setName(update.getName());
+            entity.setName(update.getName());
         }
         if (update.getType() != null && !update.getType().isEmpty()) {
-            existing.setType(update.getType());
+            entity.setType(update.getType());
         }
 
-        existing = instancesDao.save(existing);
-        return instanceConverter.toBoundary(existing);
+        entity = instancesDao.save(entity);
+        log.info("Modified instance was saved in DB: {}", entity);
+        return instanceConverter.toBoundary(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
     @Deprecated
     public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
+        log.error("Called deprecated method");
         throw new RuntimeException("Unimplemented deprecated operation");
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail, int page, int size) {
+        log.info("Getting {} instances from page {}", size, page);
         Sort.Direction direction = Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
 
         Page<InstanceEntity> resultPage = this.instancesDao
                 .findAll(pageable);
 
+        log.info("Converting results to boundaries");
         return resultPage
                 .stream()
                 .map(this.instanceConverter::toBoundary)
