@@ -9,6 +9,7 @@ public interface InstancesService {
 
     InstanceBoundary updateInstance(String userDomain, String userEmail, String instanceDomain, String instanceId, InstanceBoundary update);
 
+    @Deprecated
     List<InstanceBoundary> getAllInstances(String userDomain, String userEmail);
 
     InstanceBoundary getSpecificInstance(String userDomain, String userEmail, String instanceDomain, String instanceId);

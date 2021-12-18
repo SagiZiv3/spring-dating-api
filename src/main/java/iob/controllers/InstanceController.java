@@ -4,7 +4,7 @@ import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.boundaries.helpers.UserIdBoundary;
-import iob.logic.InstanceWIthBindingsService;
+import iob.logic.pagedservices.PagedInstancesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -20,10 +21,10 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/iob/instances")
 public class InstanceController {
-    private final InstanceWIthBindingsService instancesService;
+    private final PagedInstancesService instancesService;
 
     @Autowired
-    public InstanceController(InstanceWIthBindingsService instancesService) {
+    public InstanceController(PagedInstancesService instancesService) {
         this.instancesService = instancesService;
     }
 
@@ -61,8 +62,10 @@ public class InstanceController {
 
     @GetMapping(path = "/{userDomain}/{userEmail}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<InstanceBoundary> getAllInstances(@PathVariable("userDomain") String userDomain,
-                                                  @PathVariable("userEmail") String userEmail) {
-        return instancesService.getAllInstances(userDomain, userEmail);
+                                                  @PathVariable("userEmail") String userEmail,
+                                                  @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                  @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        return instancesService.getAllInstances(userDomain, userEmail, page, size);
 
     }
 

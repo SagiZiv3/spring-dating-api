@@ -3,12 +3,16 @@ package iob.logic.db;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.InstanceConverter;
 import iob.data.InstanceEntity;
-import iob.logic.InstanceWIthBindingsService;
 import iob.logic.db.dao.InstancesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.instance.InstanceNotFoundException;
+import iob.logic.pagedservices.PagedInstancesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
-public class InstancesServiceJpa implements InstanceWIthBindingsService {
+public class InstancesServiceJpa implements PagedInstancesService {
     private String domainName;
     private final InstancesDao instancesDao;
     private final InstanceConverter instanceConverter;
@@ -69,11 +73,26 @@ public class InstancesServiceJpa implements InstanceWIthBindingsService {
 
     @Override
     @Transactional(readOnly = true)
+    @Deprecated
     public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
         return StreamSupport
                 .stream(this.instancesDao
                         .findAll()
                         .spliterator(), false)
+                .map(this.instanceConverter::toBoundary)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail, int page, int size) {
+        Sort.Direction direction = Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
+
+        Page<InstanceEntity> resultPage = this.instancesDao
+                .findAll(pageable);
+
+        return resultPage
+                .stream()
                 .map(this.instanceConverter::toBoundary)
                 .collect(Collectors.toList());
     }
