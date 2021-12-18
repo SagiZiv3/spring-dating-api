@@ -6,6 +6,7 @@ import iob.data.ActivityEntity;
 import iob.logic.db.dao.ActivitiesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.pagedservices.PagedActivitiesService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ActivitiesServiceJpa implements PagedActivitiesService {
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
@@ -34,14 +36,32 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     @Override
     @Transactional
     public Object invokeActivity(ActivityBoundary activity) {
+        log.info("Validating activity");
         validateActivity(activity);
-        ActivityEntity entity = activityConverter.toEntity(activity);
-        entity.setCreatedTimestamp(new Date());
-        entity.setDomain(domainName);
+        ActivityEntity entityToStore = activityConverter.toEntity(activity);
+        entityToStore.setCreatedTimestamp(new Date());
+        entityToStore.setDomain(domainName);
+        log.info("Converted to entityToStore: {}", entityToStore);
 
-        entity = activitiesDao.save(entity);
+        entityToStore = activitiesDao.save(entityToStore);
+        log.info("Activity was saved in DB: {}", entityToStore);
 
-        return activityConverter.toBoundary(entity);
+        return activityConverter.toBoundary(entityToStore);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Deprecated
+    public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
+        log.error("Called deprecated method");
+        throw new RuntimeException("Unimplemented deprecated operation");
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllActivities(String adminDomain, String adminEmail) {
+        log.info("Deleting all activities");
+        activitiesDao.deleteAll();
     }
 
     private void validateActivity(ActivityBoundary activity) {
@@ -56,35 +76,24 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         }
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    @Deprecated
-    public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
-        throw new RuntimeException("Unimplemented deprecated operation");
+    @Value("${spring.application.name:dummy}")
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
     }
 
     @Override
     public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail, int page, int size) {
+        log.info("Getting {} activities from page {}", size, page);
         Sort.Direction direction = Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
 
         Page<ActivityEntity> resultPage = this.activitiesDao
                 .findAll(pageable);
 
+        log.info("Converting results to boundaries");
         return resultPage
                 .stream()
                 .map(this.activityConverter::toBoundary)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public void deleteAllActivities(String adminDomain, String adminEmail) {
-        activitiesDao.deleteAll();
-    }
-
-    @Value("${spring.application.name:dummy}")
-    public void setDomainName(String domainName) {
-        this.domainName = domainName;
     }
 }
