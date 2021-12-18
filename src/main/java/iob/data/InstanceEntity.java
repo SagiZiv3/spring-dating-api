@@ -62,7 +62,6 @@ public class InstanceEntity {
     private String type;
     @NonNull
     private String name;
-    // Cancel the default getter, because it is prefixed with "is" instead of "get"
     private boolean active;
     // Define that we save the data and the time
     @Temporal(TemporalType.TIMESTAMP)
@@ -95,10 +94,6 @@ public class InstanceEntity {
     @ManyToMany(mappedBy = "parentInstances", fetch = FetchType.LAZY)
     private Set<InstanceEntity> childInstances = new HashSet<>();
     //</editor-fold>
-
-    public boolean getActive() {
-        return this.active;
-    }
 
     public void addParent(InstanceEntity parent) {
         if (this.equals(parent))
