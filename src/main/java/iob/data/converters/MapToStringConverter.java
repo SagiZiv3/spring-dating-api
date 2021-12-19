@@ -1,5 +1,6 @@
 package iob.data.converters;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.AttributeConverter;
@@ -27,7 +28,8 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Obje
     @Override
     public Map<String, Object> convertToEntityAttribute(String stringFromDb) {
         try {
-            return this.jackson.readValue(stringFromDb, Map.class);
+            return this.jackson.readValue(stringFromDb, new TypeReference<Map<String, Object>>() {
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
