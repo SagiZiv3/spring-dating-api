@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.WordUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -54,9 +55,10 @@ public class AnnotationsAspect {
         if (Arrays.stream(permittedRoles).noneMatch(passedUserRole::equals)) {
             String permittedRolesString = Arrays.stream(permittedRoles)
                     .map(UserRoleParameter::name)
+                    .map(WordUtils::capitalizeFully)
                     .collect(Collectors.joining(", "));
-            throw new UserPermissionException(passedUserRole.name(), permittedRolesString,
-                    user.getUserId().getEmail(), user.getUserId().getDomain());
+            throw new UserPermissionException(WordUtils.capitalizeFully(passedUserRole.name().toLowerCase()),
+                    permittedRolesString, user.getUserId().getEmail(), user.getUserId().getDomain());
         }
 
         return proceedingJoinPoint.proceed();
