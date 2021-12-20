@@ -25,14 +25,4 @@ public class UserExceptionsHandler {
         );
         return new ResponseEntity<>(response, response.getHttpStatus());
     }
-
-    @ExceptionHandler(UserPermissionException.class)
-    private ResponseEntity<ExceptionResponse> handleUserPermissionException(UserPermissionException e) {
-        ExceptionResponse response = new ExceptionResponse(
-                String.format("User with email '%s' in domain '%s' with role '%s' can't access required resource, required role is %s",
-                        e.getUserEmail(), e.getUserDomain(), e.getUserRole(), e.getRequiredRole()),
-                HttpStatus.UNAUTHORIZED
-        );
-        return new ResponseEntity<>(response, response.getHttpStatus());
-    }
 }

@@ -15,4 +15,14 @@ public class GeneralExceptionsHandler {
         );
         return new ResponseEntity<>(response, response.getHttpStatus());
     }
+
+    @ExceptionHandler(UserPermissionException.class)
+    private ResponseEntity<ExceptionResponse> handleUserPermissionException(UserPermissionException e) {
+        ExceptionResponse response = new ExceptionResponse(
+                String.format("User with email '%s' in domain '%s' with role '%s' can't invoke required method, permitted roles are %s",
+                        e.getUserEmail(), e.getUserDomain(), e.getUserRole(), e.getPermittedRoles()),
+                HttpStatus.FORBIDDEN // Source: https://stackoverflow.com/a/6937030
+        );
+        return new ResponseEntity<>(response, response.getHttpStatus());
+    }
 }
