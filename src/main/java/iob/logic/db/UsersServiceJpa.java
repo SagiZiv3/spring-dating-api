@@ -8,7 +8,6 @@ import iob.logic.db.dao.UsersDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.user.UserExistsException;
 import iob.logic.exceptions.user.UserNotFoundException;
-import iob.logic.exceptions.user.UserPermissionException;
 import iob.logic.pagedservices.PagedUsersService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -114,8 +113,6 @@ public class UsersServiceJpa implements PagedUsersService {
     @Override
     @Transactional
     public void deleteAllUsers(String adminDomain, String adminEmail) {
-        log.info("Checking user's permission");
-        checkIfAdmin(adminDomain, adminEmail);
         log.info("Deleting all users");
         usersDao.deleteAll();
     }
@@ -150,21 +147,6 @@ public class UsersServiceJpa implements PagedUsersService {
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9\\+_-]+(\\.[A-Za-z0-9\\+_-]+)*@"
                 + "[^-][A-Za-z0-9\\+-]+(\\.[A-Za-z0-9\\+-]+)*(\\.[A-Za-z]{2,})$";
         return email.matches(regexPattern);
-    }
-
-    /**
-     * Finds the user in the storage and checks if his role is defined as {@link UserRole#ADMIN}.<br/>
-     * If the user is not an admin, a {@link UserPermissionException} would be thrown.
-     *
-     * @param domain - The domain in which the user exists.
-     * @param email  - The user's email address.
-     */
-    private void checkIfAdmin(String domain, String email) {
-        UserEntity userEntity = findUserInStorage(domain, email);
-        if (userEntity.getRole() != UserRole.ADMIN) {
-            throw new UserPermissionException(userEntity.getRole().name(), UserRole.ADMIN.name(),
-                    userEntity.getEmail(), userEntity.getDomain());
-        }
     }
 
     /**
