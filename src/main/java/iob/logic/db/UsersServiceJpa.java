@@ -4,6 +4,10 @@ import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.UserConverter;
 import iob.data.UserEntity;
 import iob.data.UserRole;
+import iob.logic.annotations.ParameterType;
+import iob.logic.annotations.RoleParameter;
+import iob.logic.annotations.RoleRestricted;
+import iob.logic.annotations.UserRoleParameter;
 import iob.logic.db.dao.UsersDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.user.UserExistsException;
@@ -95,7 +99,9 @@ public class UsersServiceJpa implements PagedUsersService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail, int page, int size) {
+    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
+    public List<UserBoundary> getAllUsers(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
+                                          @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail, int page, int size) {
         log.info("Getting {} users from page {}", size, page);
         Sort.Direction direction = Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
@@ -112,7 +118,9 @@ public class UsersServiceJpa implements PagedUsersService {
 
     @Override
     @Transactional
-    public void deleteAllUsers(String adminDomain, String adminEmail) {
+    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
+    public void deleteAllUsers(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
+                               @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail) {
         log.info("Deleting all users");
         usersDao.deleteAll();
     }

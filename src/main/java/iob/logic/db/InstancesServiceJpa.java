@@ -3,6 +3,10 @@ package iob.logic.db;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.InstanceConverter;
 import iob.data.InstanceEntity;
+import iob.logic.annotations.ParameterType;
+import iob.logic.annotations.RoleParameter;
+import iob.logic.annotations.RoleRestricted;
+import iob.logic.annotations.UserRoleParameter;
 import iob.logic.db.dao.InstancesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.instance.InstanceNotFoundException;
@@ -36,7 +40,10 @@ public class InstancesServiceJpa implements PagedInstancesService {
 
     @Override
     @Transactional
-    public InstanceBoundary createInstance(String userDomain, String userEmail, InstanceBoundary instance) {
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public InstanceBoundary createInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                           @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                           InstanceBoundary instance) {
         log.info("Validating instance");
         validateInstance(instance);
         InstanceEntity entityToStore = instanceConverter.toEntity(instance);
@@ -112,7 +119,9 @@ public class InstancesServiceJpa implements PagedInstancesService {
 
     @Override
     @Transactional
-    public void deleteAllInstances(String adminDomain, String adminEmail) {
+    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
+    public void deleteAllInstances(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
+                                   @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail) {
         instancesDao.deleteAll();
     }
 

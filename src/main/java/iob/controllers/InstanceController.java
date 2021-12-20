@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -66,7 +68,44 @@ public class InstanceController {
                                                   @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                   @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
         return instancesService.getAllInstances(userDomain, userEmail, page, size);
+    }
 
+    @GetMapping(path = "/{userDomain}/{userEmail}/search/byName/{name}")
+    public List<InstanceBoundary> getAllInstancesWithName(@PathVariable("userDomain") String userDomain,
+                                                          @PathVariable("userEmail") String userEmail,
+                                                          @PathVariable("name") String name,
+                                                          @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                          @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        return Collections.emptyList();
+    }
+
+    @GetMapping(path = "/{userDomain}/{userEmail}/search/byType/{type}")
+    public List<InstanceBoundary> getAllInstancesWithType(@PathVariable("userDomain") String userDomain,
+                                                          @PathVariable("userEmail") String userEmail,
+                                                          @PathVariable("type") String type,
+                                                          @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                          @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        return Collections.emptyList();
+    }
+
+    @GetMapping(path = "/{userDomain}/{userEmail}/search/near/{lat}/{lng}/{distance}")
+    public List<InstanceBoundary> getAllInstancesNearLocation(@PathVariable("userDomain") String userDomain,
+                                                              @PathVariable("userEmail") String userEmail,
+                                                              @PathVariable("lat") double lat,
+                                                              @PathVariable("lng") double lng,
+                                                              @PathVariable("distance") double distance,
+                                                              @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                              @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        return instancesService.findByDistance(lat, lng, distance, page, size);
+    }
+
+    @GetMapping(path = "/{userDomain}/{userEmail}/search/created/{creationWindow}")
+    public List<InstanceBoundary> getAllInstancesCreatedInTimeWindow(@PathVariable("userDomain") String userDomain,
+                                                                     @PathVariable("userEmail") String userEmail,
+                                                                     @PathVariable("creationWindow") Date creationWindow,
+                                                                     @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                                     @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        return Collections.emptyList();
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -74,7 +113,6 @@ public class InstanceController {
                                                          @PathVariable("userEmail") String userEmail,
                                                          @PathVariable String instanceDomain, @PathVariable String instanceId) {
         return instancesService.getChildren(instanceId, instanceDomain);
-
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/parents", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -82,7 +120,6 @@ public class InstanceController {
                                                         @PathVariable("userEmail") String userEmail,
                                                         @PathVariable String instanceDomain, @PathVariable String instanceId) {
         return instancesService.getParents(instanceId, instanceDomain);
-
     }
 
 }
