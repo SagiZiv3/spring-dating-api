@@ -1,13 +1,10 @@
 package iob.logic.annotations;
 
-import iob.boundaries.UserBoundary;
-import iob.logic.UsersService;
-import iob.logic.exceptions.UserPermissionException;
+import iob.logic.UserPermissionsHandler;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.WordUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Parameter;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -27,11 +23,11 @@ import java.util.stream.Stream;
 @Aspect
 @Slf4j
 public class AnnotationsAspect {
-    private final UsersService usersService;
+    private final UserPermissionsHandler permissionsHandler;
 
     @Autowired
-    public AnnotationsAspect(UsersService usersService) {
-        this.usersService = usersService;
+    public AnnotationsAspect(UserPermissionsHandler permissionsHandler) {
+        this.permissionsHandler = permissionsHandler;
     }
 
     @Around("@annotation(iob.logic.annotations.RoleRestricted)")
@@ -42,25 +38,13 @@ public class AnnotationsAspect {
 
         log.debug(String.valueOf(authorizationParameters));
 
-        // Get the user from the database, and extract its role.
-        UserBoundary user = usersService.login(authorizationParameters.get(ParameterType.DOMAIN),
-                authorizationParameters.get(ParameterType.EMAIL));
-        UserRoleParameter passedUserRole = UserRoleParameter.valueOf(user.getRole().name().toUpperCase());
-
         // Get the roles from the annotation.
         UserRoleParameter[] permittedRoles = methodSignature.getMethod()
                 .getAnnotation(RoleRestricted.class)
                 .permittedRoles();
 
-        // Throw exception if the user's role is not in the permitted roles list.
-        if (Arrays.stream(permittedRoles).noneMatch(passedUserRole::equals)) {
-            String permittedRolesString = Arrays.stream(permittedRoles)
-                    .map(UserRoleParameter::name)
-                    .map(WordUtils::capitalizeFully)
-                    .collect(Collectors.joining(", "));
-            throw new UserPermissionException(WordUtils.capitalizeFully(passedUserRole.name().toLowerCase()),
-                    permittedRolesString, user.getUserId().getEmail(), user.getUserId().getDomain());
-        }
+        permissionsHandler.throwIfNotAuthorized(authorizationParameters.get(ParameterType.DOMAIN),
+                authorizationParameters.get(ParameterType.EMAIL), permittedRoles);
 
         return proceedingJoinPoint.proceed();
     }

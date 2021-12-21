@@ -5,6 +5,7 @@ import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.helpers.TimeFrame;
 import iob.data.InstanceEntity;
 import iob.data.TimeFrameEntity;
+import iob.logic.UserPermissionsHandler;
 import iob.logic.annotations.ParameterType;
 import iob.logic.annotations.RoleParameter;
 import iob.logic.annotations.RoleRestricted;
@@ -13,6 +14,7 @@ import iob.logic.db.dao.InstancesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.instance.InstanceNotFoundException;
 import iob.logic.pagedservices.PagedInstancesService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,12 +35,14 @@ public class InstancesServiceJpa implements PagedInstancesService {
     private String domainName;
     private final InstancesDao instancesDao;
     private final InstanceConverter instanceConverter;
+    private final UserPermissionsHandler permissionsHandler;
     //</editor-fold>
 
     @Autowired
-    public InstancesServiceJpa(InstancesDao instancesDao, InstanceConverter converter) {
+    public InstancesServiceJpa(InstancesDao instancesDao, InstanceConverter converter, UserPermissionsHandler permissionsHandler) {
         this.instancesDao = instancesDao;
         this.instanceConverter = converter;
+        this.permissionsHandler = permissionsHandler;
     }
 
     //<editor-fold desc="Get methods">
@@ -91,7 +95,8 @@ public class InstancesServiceJpa implements PagedInstancesService {
         log.debug("Lat: {}, Lng: {}, Radius: {}", centerLat, centerLng, radius);
         Pageable pageable = getDefaultPageable(page, size);
         return instanceConverter.toBoundaries(instancesDao.getAllEntitiesInRadiusAndActive(centerLat,
-                centerLng, radius, true, pageable));
+                centerLng, radius, permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail),
+                pageable));
     }
 
     @Override
@@ -101,7 +106,8 @@ public class InstancesServiceJpa implements PagedInstancesService {
                                                           @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                                                           String name, int page, int size) {
         Pageable pageable = getDefaultPageable(page, size);
-        return instanceConverter.toBoundaries(instancesDao.findAllByNameAndActiveEquals(name, true, pageable));
+        return instanceConverter.toBoundaries(instancesDao.findAllByNameAndActiveIn(name,
+                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable));
     }
 
     @Override
@@ -111,7 +117,8 @@ public class InstancesServiceJpa implements PagedInstancesService {
                                                           @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                                                           String type, int page, int size) {
         Pageable pageable = getDefaultPageable(page, size);
-        return instanceConverter.toBoundaries(instancesDao.findAllByTypeAndActiveEquals(type, true, pageable));
+        return instanceConverter.toBoundaries(instancesDao.findAllByTypeAndActiveIn(type,
+                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable));
     }
 
     @Override
@@ -119,15 +126,16 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
     public List<InstanceBoundary> getAllInstancesCreatedInTimeWindow(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
                                                                      @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                                                     TimeFrame creationWindow, int page, int size) {
+                                                                     @NonNull TimeFrame creationWindow, int page, int size) {
         Pageable pageable = getDefaultPageable(page, size);
         TimeFrameEntity timeFrame = TimeFrameEntity.valueOf(creationWindow.name());
 
         log.info("Getting all instance between {} and {}, based on {}",
                 timeFrame.getStartDate(), timeFrame.getEndDate(), timeFrame);
 
-        return instanceConverter.toBoundaries(instancesDao.findAllByCreatedTimestampBetweenAndActiveEquals(
-                timeFrame.getStartDate(), timeFrame.getEndDate(), true, pageable));
+        return instanceConverter.toBoundaries(instancesDao.findAllByCreatedTimestampBetweenAndActiveIn(
+                timeFrame.getStartDate(), timeFrame.getEndDate(),
+                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable));
     }
 
     //<editor-fold desc="Deprecated methods">
