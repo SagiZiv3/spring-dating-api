@@ -12,6 +12,10 @@ import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class InstanceConverter {
     private final UserConverter userConverter;
@@ -63,6 +67,12 @@ public class InstanceConverter {
             entity.setId(instanceKey.getId());
         }
         return entity;
+    }
+
+    public List<InstanceBoundary> toBoundaries(Collection<InstanceEntity> instanceEntities) {
+        return instanceEntities.stream()
+                .map(this::toBoundary)
+                .collect(Collectors.toList());
     }
 
     public UserEntity toCreatedByEntity(CreatedByBoundary createdBy) {
