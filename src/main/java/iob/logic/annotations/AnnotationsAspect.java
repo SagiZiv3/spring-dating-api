@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.WordUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -43,8 +44,8 @@ public class AnnotationsAspect {
                 .getAnnotation(RoleRestricted.class)
                 .permittedRoles();
 
-        permissionsHandler.throwIfNotAuthorized(authorizationParameters.get(ParameterType.DOMAIN),
-                authorizationParameters.get(ParameterType.EMAIL), permittedRoles);
+        permissionsHandler.throwIfNotAuthorized(getIfExist(ParameterType.DOMAIN, authorizationParameters),
+                getIfExist(ParameterType.EMAIL, authorizationParameters), permittedRoles);
 
         return proceedingJoinPoint.proceed();
     }
@@ -53,16 +54,26 @@ public class AnnotationsAspect {
         Parameter[] parameters = methodSignature.getMethod().getParameters();
         Object[] parametersValues = proceedingJoinPoint.getArgs();
 
-        // Log the parameters with their names
+        // Log the parameters' name, type and value.
         zipArrays(parameters, parametersValues)
                 .map(parameter -> String.format("Parameter: %s (%s) = %s",
                         parameter.getValue1().getName(), parameter.getValue1().getType().getSimpleName(), parameter.getValue2()))
-                .forEach(log::info);
+                .forEach(log::debug);
 
         return zipArrays(parameters, parametersValues)
+                // Extract the RoleParameter annotation from the properties.
                 .map(pair -> new Pair<>(pair.getValue1().getAnnotation(RoleParameter.class), pair.getValue2()))
+                // Filter out all the properties without the annotation.
                 .filter(pair -> Objects.nonNull(pair.getValue1()))
+                // Map the parameter's role-type to the parameter's value.
                 .collect(Collectors.toMap(pair -> pair.getValue1().parameterType(), pair -> pair.getValue2().toString()));
+    }
+
+    private String getIfExist(ParameterType key, Map<ParameterType, String> map) {
+        if (!map.containsKey(key))
+            throw new RuntimeException(String.format("Missing authorization parameter: %s",
+                    WordUtils.capitalizeFully(key.name())));
+        return map.get(key);
     }
 
     private static <A, B> Stream<Pair<A, B>> zipArrays(A[] as, B[] bs) {
