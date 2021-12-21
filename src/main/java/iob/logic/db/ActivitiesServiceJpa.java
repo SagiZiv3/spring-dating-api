@@ -69,6 +69,16 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
                 activity);
     }
 
+    @Override
+    @Transactional
+    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
+    public void deleteAllActivities(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
+                                    @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail) {
+        log.info("Deleting all activities");
+        activitiesDao.deleteAll();
+    }
+    //</editor-fold>
+
     //<editor-fold desc="Helper methods">
     @RoleRestricted(permittedRoles = UserRoleParameter.PLAYER)
     private Object tryInvokeActivity(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
@@ -86,7 +96,6 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
 
         return activityConverter.toBoundary(entityToStore);
     }
-    //</editor-fold>
 
     private void validateActivity(ActivityBoundary activity) {
         if (activity.getType() == null || activity.getType().isEmpty()) {
@@ -99,6 +108,7 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
             throw new InvalidInputException("instance", null);
         }
     }
+    //</editor-fold>
 
     //<editor-fold desc="Deprecated methods">
     @Override
@@ -107,16 +117,6 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
         log.error("Called deprecated method");
         throw new RuntimeException("Unimplemented deprecated operation");
-    }
-    //</editor-fold>
-
-    @Override
-    @Transactional
-    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
-    public void deleteAllActivities(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
-                                    @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail) {
-        log.info("Deleting all activities");
-        activitiesDao.deleteAll();
     }
     //</editor-fold>
 

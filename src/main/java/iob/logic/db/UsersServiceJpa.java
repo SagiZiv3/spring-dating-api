@@ -40,6 +40,16 @@ public class UsersServiceJpa implements PagedUsersService {
         this.usersDao = usersDao;
     }
 
+    //<editor-fold desc="Get methods">
+    @Override
+    @Transactional(readOnly = true)
+    public UserBoundary login(String userDomain, String userEmail) {
+        log.info("Searching user in DB");
+        UserEntity entity = findUserInStorage(userDomain, userEmail);
+        log.info("User from DB: {}", entity);
+        return userConverter.toBoundary(entity);
+    }
+
     @Override
     @Transactional(readOnly = true)
     @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
@@ -58,6 +68,8 @@ public class UsersServiceJpa implements PagedUsersService {
                 .map(this.userConverter::toBoundary)
                 .collect(Collectors.toList());
     }
+
+    //</editor-fold>
 
     //<editor-fold desc="Modification methods (create/update/delete)">
     @Override
@@ -78,18 +90,6 @@ public class UsersServiceJpa implements PagedUsersService {
         log.info("User was saved in DB: {}", entityToStore);
 
         return userConverter.toBoundary(entityToStore);
-    }
-
-    //</editor-fold>
-
-    //<editor-fold desc="Get methods">
-    @Override
-    @Transactional(readOnly = true)
-    public UserBoundary login(String userDomain, String userEmail) {
-        log.info("Searching user in DB");
-        UserEntity entity = findUserInStorage(userDomain, userEmail);
-        log.info("User from DB: {}", entity);
-        return userConverter.toBoundary(entity);
     }
 
     @Override
@@ -114,31 +114,6 @@ public class UsersServiceJpa implements PagedUsersService {
         return userConverter.toBoundary(entity);
     }
 
-    /**
-     * Searches and retrieves the user with the given info from the storage.<br/>
-     * If the user doesn't exist, a {@link UserNotFoundException} would be thrown.
-     *
-     * @param domain - The domain in which the user exists.
-     * @param email  - The user's email address.
-     * @return A {@link UserEntity} for the given domain and email address.
-     */
-    private UserEntity findUserInStorage(String domain, String email) {
-        return usersDao.findById(userConverter.toUserPrimaryKey(email, domain))
-                .orElseThrow(() -> new UserNotFoundException(domain, email));
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="Helper methods">
-
-    //<editor-fold desc="Deprecated methods">
-    @Override
-    @Transactional(readOnly = true)
-    @Deprecated
-    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail) {
-        log.error("Called deprecated method");
-        throw new RuntimeException("Unimplemented deprecated operation");
-    }
-
     @Override
     @Transactional
     @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
@@ -147,7 +122,9 @@ public class UsersServiceJpa implements PagedUsersService {
         log.info("Deleting all users");
         usersDao.deleteAll();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Helper methods">
     /**
      * Checks if all the fields in the given user are valid (non-empty and not null).<br/>
      * If one of the fields is invalid, an {@link InvalidInputException} would be thrown.
@@ -166,7 +143,6 @@ public class UsersServiceJpa implements PagedUsersService {
             throw new InvalidInputException("avatar", userBoundary.getAvatar());
         }
     }
-    //</editor-fold>
 
     /**
      * Checks if the given email address is valid
@@ -179,6 +155,29 @@ public class UsersServiceJpa implements PagedUsersService {
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9\\+_-]+(\\.[A-Za-z0-9\\+_-]+)*@"
                 + "[^-][A-Za-z0-9\\+-]+(\\.[A-Za-z0-9\\+-]+)*(\\.[A-Za-z]{2,})$";
         return email.matches(regexPattern);
+    }
+
+    /**
+     * Searches and retrieves the user with the given info from the storage.<br/>
+     * If the user doesn't exist, a {@link UserNotFoundException} would be thrown.
+     *
+     * @param domain - The domain in which the user exists.
+     * @param email  - The user's email address.
+     * @return A {@link UserEntity} for the given domain and email address.
+     */
+    private UserEntity findUserInStorage(String domain, String email) {
+        return usersDao.findById(userConverter.toUserPrimaryKey(email, domain))
+                .orElseThrow(() -> new UserNotFoundException(domain, email));
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Deprecated methods">
+    @Override
+    @Transactional(readOnly = true)
+    @Deprecated
+    public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail) {
+        log.error("Called deprecated method");
+        throw new RuntimeException("Unimplemented deprecated operation");
     }
     //</editor-fold>
 }

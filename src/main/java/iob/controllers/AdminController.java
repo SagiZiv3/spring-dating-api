@@ -30,6 +30,7 @@ public class AdminController {
         this.activitiesService = activitiesService;
     }
 
+    //<editor-fold desc="Get requests">
     @GetMapping(path = "/users/{userDomain}/{userEmail}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<UserBoundary> exportAllUsers(@PathVariable("userDomain") String adminDomain,
                                              @PathVariable("userEmail") String adminEmail,
@@ -45,7 +46,9 @@ public class AdminController {
                                                       @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
         return activitiesService.getAllActivities(adminDomain, adminEmail, page, size);
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Delete requests">
     @DeleteMapping(path = "/users/{userDomain}/{userEmail}")
     public void deleteAllUsers(@PathVariable("userDomain") String adminDomain,
                                @PathVariable("userEmail") String adminEmail) {
@@ -64,4 +67,5 @@ public class AdminController {
                                     @PathVariable("userEmail") String adminEmail) {
         activitiesService.deleteAllActivities(adminDomain, adminEmail);
     }
+    //</editor-fold>
 }

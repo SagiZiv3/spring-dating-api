@@ -45,6 +45,19 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @Override
     @Transactional(readOnly = true)
     @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> getParents(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                             @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                             String childId, String childDomain) {
+        InstanceEntity child = findInstance(childDomain, childId);
+
+        return child.getParentInstances().stream()
+                .map(this.instanceConverter::toBoundary)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
     public List<InstanceBoundary> getAllInstances(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
                                                   @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                                                   int page, int size) {
@@ -61,6 +74,30 @@ public class InstancesServiceJpa implements PagedInstancesService {
                 .map(this.instanceConverter::toBoundary)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> getChildren(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                              @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                              String parentId, String parentDomain) {
+        InstanceEntity parent = findInstance(parentDomain, parentId);
+
+        return parent.getChildInstances().stream()
+                .map(this.instanceConverter::toBoundary)
+                .collect(Collectors.toList());
+    }
+
+    //<editor-fold desc="Deprecated methods">
+    @Override
+    @Transactional(readOnly = true)
+    @Deprecated
+    public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
+        log.error("Called deprecated method");
+        throw new RuntimeException("Unimplemented deprecated operation");
+    }
+
+    //</editor-fold>
 
     //<editor-fold desc="Modification methods (create/update/delete/bind)">
     @Override
@@ -113,34 +150,6 @@ public class InstancesServiceJpa implements PagedInstancesService {
         return instanceConverter.toBoundary(entity);
     }
 
-    //<editor-fold desc="Deprecated methods">
-    @Override
-    @Transactional(readOnly = true)
-    @Deprecated
-    public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
-        log.error("Called deprecated method");
-        throw new RuntimeException("Unimplemented deprecated operation");
-    }
-
-    //</editor-fold>
-
-    @Override
-    @Transactional(readOnly = true)
-    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
-    public InstanceBoundary getSpecificInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                                @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                                String instanceDomain, String instanceId) {
-        InstanceEntity existing = findInstance(instanceDomain, instanceId);
-        return instanceConverter.toBoundary(existing);
-    }
-
-    //<editor-fold desc="Helper methods">
-    private InstanceEntity findInstance(String domain, String id) {
-        return this.instancesDao
-                .findById(instanceConverter.toInstancePrimaryKey(id, domain))
-                .orElseThrow(() -> new InstanceNotFoundException(domain, id));
-    }
-
     @Override
     @Transactional
     @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
@@ -167,14 +176,11 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @Override
     @Transactional(readOnly = true)
     @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
-    public List<InstanceBoundary> getParents(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                             @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                             String childId, String childDomain) {
-        InstanceEntity child = findInstance(childDomain, childId);
-
-        return child.getParentInstances().stream()
-                .map(this.instanceConverter::toBoundary)
-                .collect(Collectors.toList());
+    public InstanceBoundary getSpecificInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                String instanceDomain, String instanceId) {
+        InstanceEntity existing = findInstance(instanceDomain, instanceId);
+        return instanceConverter.toBoundary(existing);
     }
 
     private void validateInstance(InstanceBoundary instance) {
@@ -186,17 +192,11 @@ public class InstancesServiceJpa implements PagedInstancesService {
     }
     //</editor-fold>
 
-    @Override
-    @Transactional(readOnly = true)
-    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
-    public List<InstanceBoundary> getChildren(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                              @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                              String parentId, String parentDomain) {
-        InstanceEntity parent = findInstance(parentDomain, parentId);
-
-        return parent.getChildInstances().stream()
-                .map(this.instanceConverter::toBoundary)
-                .collect(Collectors.toList());
+    //<editor-fold desc="Helper methods">
+    private InstanceEntity findInstance(String domain, String id) {
+        return this.instancesDao
+                .findById(instanceConverter.toInstancePrimaryKey(id, domain))
+                .orElseThrow(() -> new InstanceNotFoundException(domain, id));
     }
     //</editor-fold>
 
