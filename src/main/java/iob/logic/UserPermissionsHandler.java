@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Component
@@ -50,7 +51,7 @@ public class UserPermissionsHandler {
         switch (userBoundary.getRole()) {
             case PLAYER:
                 // Player can only get active instances
-                return getAllowedActiveStatesForUser(userDomain, userEmail);
+                return Collections.singleton(true);
             case MANAGER:
                 // Manager can get either active instances or inactive instances.
                 return Arrays.asList(true, false);
