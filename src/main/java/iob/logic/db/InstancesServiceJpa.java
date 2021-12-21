@@ -2,7 +2,9 @@ package iob.logic.db;
 
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.InstanceConverter;
+import iob.boundaries.helpers.TimeFrame;
 import iob.data.InstanceEntity;
+import iob.data.TimeFrameEntity;
 import iob.logic.annotations.ParameterType;
 import iob.logic.annotations.RoleParameter;
 import iob.logic.annotations.RoleRestricted;
@@ -23,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -49,30 +50,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
                                              @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                                              String childId, String childDomain) {
         InstanceEntity child = findInstance(childDomain, childId);
-
-        return child.getParentInstances().stream()
-                .map(this.instanceConverter::toBoundary)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
-    public List<InstanceBoundary> getAllInstances(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                                  @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                                  int page, int size) {
-        log.info("Getting {} instances from page {}", size, page);
-        Sort.Direction direction = Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
-
-        Page<InstanceEntity> resultPage = this.instancesDao
-                .findAll(pageable);
-
-        log.info("Converting results to boundaries");
-        return resultPage
-                .stream()
-                .map(this.instanceConverter::toBoundary)
-                .collect(Collectors.toList());
+        return instanceConverter.toBoundaries(child.getParentInstances());
     }
 
     @Override
@@ -83,9 +61,73 @@ public class InstancesServiceJpa implements PagedInstancesService {
                                               String parentId, String parentDomain) {
         InstanceEntity parent = findInstance(parentDomain, parentId);
 
-        return parent.getChildInstances().stream()
-                .map(this.instanceConverter::toBoundary)
-                .collect(Collectors.toList());
+        return instanceConverter.toBoundaries(parent.getChildInstances());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> getAllInstances(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                  @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                  int page, int size) {
+        log.info("Getting {} instances from page {}", size, page);
+        Pageable pageable = getDefaultPageable(page, size);
+
+        Page<InstanceEntity> resultPage = this.instancesDao.findAll(pageable);
+
+        log.info("Converting results to boundaries");
+        return instanceConverter.toBoundaries(resultPage.getContent());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> findByDistance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                 @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                 double centerLat,
+                                                 double centerLng,
+                                                 double radius,
+                                                 int page, int size) {
+        log.debug("Lat: {}, Lng: {}, Radius: {}", centerLat, centerLng, radius);
+        Pageable pageable = getDefaultPageable(page, size);
+        return instanceConverter.toBoundaries(instancesDao.getAllEntitiesInRadiusAndActive(centerLat,
+                centerLng, radius, true, pageable));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> getAllInstancesWithName(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                          @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                          String name, int page, int size) {
+        Pageable pageable = getDefaultPageable(page, size);
+        return instanceConverter.toBoundaries(instancesDao.findAllByNameAndActiveEquals(name, true, pageable));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> getAllInstancesWithType(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                          @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                          String type, int page, int size) {
+        Pageable pageable = getDefaultPageable(page, size);
+        return instanceConverter.toBoundaries(instancesDao.findAllByTypeAndActiveEquals(type, true, pageable));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> getAllInstancesCreatedInTimeWindow(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                                     @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                                     TimeFrame creationWindow, int page, int size) {
+        Pageable pageable = getDefaultPageable(page, size);
+        TimeFrameEntity timeFrame = TimeFrameEntity.valueOf(creationWindow.name());
+
+        log.info("Getting all instance between {} and {}, based on {}",
+                timeFrame.getStartDate(), timeFrame.getEndDate(), timeFrame);
+
+        return instanceConverter.toBoundaries(instancesDao.findAllByCreatedTimestampBetweenAndActiveEquals(
+                timeFrame.getStartDate(), timeFrame.getEndDate(), true, pageable));
     }
 
     //<editor-fold desc="Deprecated methods">
@@ -197,6 +239,11 @@ public class InstancesServiceJpa implements PagedInstancesService {
         return this.instancesDao
                 .findById(instanceConverter.toInstancePrimaryKey(id, domain))
                 .orElseThrow(() -> new InstanceNotFoundException(domain, id));
+    }
+
+    private static Pageable getDefaultPageable(int page, int size) {
+        Sort.Direction direction = Sort.Direction.DESC;
+        return PageRequest.of(page, size, direction, "createdTimestamp", "id");
     }
     //</editor-fold>
 

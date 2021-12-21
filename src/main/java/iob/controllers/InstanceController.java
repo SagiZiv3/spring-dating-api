@@ -3,6 +3,7 @@ package iob.controllers;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.InstanceIdBoundary;
+import iob.boundaries.helpers.TimeFrame;
 import iob.boundaries.helpers.UserIdBoundary;
 import iob.logic.pagedservices.PagedInstancesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -47,13 +46,28 @@ public class InstanceController {
         return instancesService.getAllInstances(userDomain, userEmail, page, size);
     }
 
+    @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<InstanceBoundary> getAllInstanceChildren(@PathVariable("userDomain") String userDomain,
+                                                         @PathVariable("userEmail") String userEmail,
+                                                         @PathVariable String instanceDomain, @PathVariable String instanceId) {
+        return instancesService.getChildren(userDomain, userEmail, instanceId, instanceDomain);
+    }
+
+    @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/parents", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<InstanceBoundary> getAllInstanceParents(@PathVariable("userDomain") String userDomain,
+                                                        @PathVariable("userEmail") String userEmail,
+                                                        @PathVariable String instanceDomain, @PathVariable String instanceId) {
+        return instancesService.getParents(userDomain, userEmail, instanceId, instanceDomain);
+    }
+
+    //<editor-fold desc="Find requests">
     @GetMapping(path = "/{userDomain}/{userEmail}/search/byName/{name}")
     public List<InstanceBoundary> getAllInstancesWithName(@PathVariable("userDomain") String userDomain,
                                                           @PathVariable("userEmail") String userEmail,
                                                           @PathVariable("name") String name,
                                                           @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                           @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
-        return Collections.emptyList();
+        return instancesService.getAllInstancesWithName(userDomain, userEmail, name, page, size);
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/search/byType/{type}")
@@ -62,7 +76,7 @@ public class InstanceController {
                                                           @PathVariable("type") String type,
                                                           @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                           @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
-        return Collections.emptyList();
+        return instancesService.getAllInstancesWithType(userDomain, userEmail, type, page, size);
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/search/near/{lat}/{lng}/{distance}")
@@ -79,25 +93,12 @@ public class InstanceController {
     @GetMapping(path = "/{userDomain}/{userEmail}/search/created/{creationWindow}")
     public List<InstanceBoundary> getAllInstancesCreatedInTimeWindow(@PathVariable("userDomain") String userDomain,
                                                                      @PathVariable("userEmail") String userEmail,
-                                                                     @PathVariable("creationWindow") Date creationWindow,
+                                                                     @PathVariable("creationWindow") TimeFrame creationWindow,
                                                                      @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                                      @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
-        return Collections.emptyList();
+        return instancesService.getAllInstancesCreatedInTimeWindow(userDomain, userEmail, creationWindow, page, size);
     }
-
-    @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<InstanceBoundary> getAllInstanceChildren(@PathVariable("userDomain") String userDomain,
-                                                         @PathVariable("userEmail") String userEmail,
-                                                         @PathVariable String instanceDomain, @PathVariable String instanceId) {
-        return instancesService.getChildren(userDomain, userEmail, instanceId, instanceDomain);
-    }
-
-    @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/parents", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<InstanceBoundary> getAllInstanceParents(@PathVariable("userDomain") String userDomain,
-                                                        @PathVariable("userEmail") String userEmail,
-                                                        @PathVariable String instanceDomain, @PathVariable String instanceId) {
-        return instancesService.getParents(userDomain, userEmail, instanceId, instanceDomain);
-    }
+    //</editor-fold>
     //</editor-fold>
 
     //<editor-fold desc="Post requests">
