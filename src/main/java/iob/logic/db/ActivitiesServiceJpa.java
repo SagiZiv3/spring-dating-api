@@ -3,6 +3,10 @@ package iob.logic.db;
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.converters.ActivityConverter;
 import iob.data.ActivityEntity;
+import iob.logic.annotations.ParameterType;
+import iob.logic.annotations.RoleParameter;
+import iob.logic.annotations.RoleRestricted;
+import iob.logic.annotations.UserRoleParameter;
 import iob.logic.db.dao.ActivitiesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.pagedservices.PagedActivitiesService;
@@ -23,9 +27,11 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class ActivitiesServiceJpa implements PagedActivitiesService {
+    //<editor-fold desc="Class variables">
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
     private String domainName;
+    //</editor-fold>
 
     @Autowired
     public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao) {
@@ -33,9 +39,41 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         this.activitiesDao = activitiesDao;
     }
 
+    //<editor-fold desc="Get methods">
+    @Override
+    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
+    public List<ActivityBoundary> getAllActivities(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
+                                                   @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail,
+                                                   int page, int size) {
+        log.info("Getting {} activities from page {}", size, page);
+        Sort.Direction direction = Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
+
+        Page<ActivityEntity> resultPage = this.activitiesDao
+                .findAll(pageable);
+
+        log.info("Converting results to boundaries");
+        return resultPage
+                .stream()
+                .map(this.activityConverter::toBoundary)
+                .collect(Collectors.toList());
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Modification methods (create/delete)">
     @Override
     @Transactional
     public Object invokeActivity(ActivityBoundary activity) {
+        return tryInvokeActivity(activity.getInvokedBy().getUserId().getDomain(),
+                activity.getInvokedBy().getUserId().getEmail(),
+                activity);
+    }
+
+    //<editor-fold desc="Helper methods">
+    @RoleRestricted(permittedRoles = UserRoleParameter.PLAYER)
+    private Object tryInvokeActivity(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                     @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                     ActivityBoundary activity) {
         log.info("Validating activity");
         validateActivity(activity);
         ActivityEntity entityToStore = activityConverter.toEntity(activity);
@@ -48,21 +86,7 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
 
         return activityConverter.toBoundary(entityToStore);
     }
-
-    @Override
-    @Transactional(readOnly = true)
-    @Deprecated
-    public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
-        log.error("Called deprecated method");
-        throw new RuntimeException("Unimplemented deprecated operation");
-    }
-
-    @Override
-    @Transactional
-    public void deleteAllActivities(String adminDomain, String adminEmail) {
-        log.info("Deleting all activities");
-        activitiesDao.deleteAll();
-    }
+    //</editor-fold>
 
     private void validateActivity(ActivityBoundary activity) {
         if (activity.getType() == null || activity.getType().isEmpty()) {
@@ -76,24 +100,28 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         }
     }
 
+    //<editor-fold desc="Deprecated methods">
+    @Override
+    @Transactional(readOnly = true)
+    @Deprecated
+    public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail) {
+        log.error("Called deprecated method");
+        throw new RuntimeException("Unimplemented deprecated operation");
+    }
+    //</editor-fold>
+
+    @Override
+    @Transactional
+    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
+    public void deleteAllActivities(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
+                                    @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail) {
+        log.info("Deleting all activities");
+        activitiesDao.deleteAll();
+    }
+    //</editor-fold>
+
     @Value("${spring.application.name:dummy}")
     public void setDomainName(String domainName) {
         this.domainName = domainName;
-    }
-
-    @Override
-    public List<ActivityBoundary> getAllActivities(String adminDomain, String adminEmail, int page, int size) {
-        log.info("Getting {} activities from page {}", size, page);
-        Sort.Direction direction = Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, direction, "createdTimestamp", "id");
-
-        Page<ActivityEntity> resultPage = this.activitiesDao
-                .findAll(pageable);
-
-        log.info("Converting results to boundaries");
-        return resultPage
-                .stream()
-                .map(this.activityConverter::toBoundary)
-                .collect(Collectors.toList());
     }
 }

@@ -36,6 +36,7 @@ public class AnnotationsAspect {
 
     @Around("@annotation(iob.logic.annotations.RoleRestricted)")
     public Object authorizeUserRole(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        log.info("Checking user's permission");
         MethodSignature methodSignature = (MethodSignature) proceedingJoinPoint.getSignature();
         Map<ParameterType, String> authorizationParameters = getParameterTypeStringMap(proceedingJoinPoint, methodSignature);
 

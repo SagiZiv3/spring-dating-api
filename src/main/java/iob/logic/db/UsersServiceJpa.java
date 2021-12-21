@@ -29,8 +29,10 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UsersServiceJpa implements PagedUsersService {
+    //<editor-fold desc="Class variables">
     private final UserConverter userConverter;
     private final UsersDao usersDao;
+    //</editor-fold>
 
     @Autowired
     public UsersServiceJpa(UserConverter userConverter, UsersDao usersDao) {
@@ -38,6 +40,26 @@ public class UsersServiceJpa implements PagedUsersService {
         this.usersDao = usersDao;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
+    public List<UserBoundary> getAllUsers(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
+                                          @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail, int page, int size) {
+        log.info("Getting {} users from page {}", size, page);
+        Sort.Direction direction = Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
+
+        Page<UserEntity> resultPage = this.usersDao
+                .findAll(pageable);
+
+        log.info("Converting results to boundaries");
+        return resultPage
+                .stream()
+                .map(this.userConverter::toBoundary)
+                .collect(Collectors.toList());
+    }
+
+    //<editor-fold desc="Modification methods (create/update/delete)">
     @Override
     @Transactional
     public UserBoundary createUser(UserBoundary user) {
@@ -58,6 +80,9 @@ public class UsersServiceJpa implements PagedUsersService {
         return userConverter.toBoundary(entityToStore);
     }
 
+    //</editor-fold>
+
+    //<editor-fold desc="Get methods">
     @Override
     @Transactional(readOnly = true)
     public UserBoundary login(String userDomain, String userEmail) {
@@ -89,31 +114,29 @@ public class UsersServiceJpa implements PagedUsersService {
         return userConverter.toBoundary(entity);
     }
 
+    /**
+     * Searches and retrieves the user with the given info from the storage.<br/>
+     * If the user doesn't exist, a {@link UserNotFoundException} would be thrown.
+     *
+     * @param domain - The domain in which the user exists.
+     * @param email  - The user's email address.
+     * @return A {@link UserEntity} for the given domain and email address.
+     */
+    private UserEntity findUserInStorage(String domain, String email) {
+        return usersDao.findById(userConverter.toUserPrimaryKey(email, domain))
+                .orElseThrow(() -> new UserNotFoundException(domain, email));
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Helper methods">
+
+    //<editor-fold desc="Deprecated methods">
     @Override
     @Transactional(readOnly = true)
     @Deprecated
     public List<UserBoundary> getAllUsers(String adminDomain, String adminEmail) {
         log.error("Called deprecated method");
         throw new RuntimeException("Unimplemented deprecated operation");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
-    public List<UserBoundary> getAllUsers(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
-                                          @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail, int page, int size) {
-        log.info("Getting {} users from page {}", size, page);
-        Sort.Direction direction = Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, direction, "email", "username");
-
-        Page<UserEntity> resultPage = this.usersDao
-                .findAll(pageable);
-
-        log.info("Converting results to boundaries");
-        return resultPage
-                .stream()
-                .map(this.userConverter::toBoundary)
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -143,6 +166,7 @@ public class UsersServiceJpa implements PagedUsersService {
             throw new InvalidInputException("avatar", userBoundary.getAvatar());
         }
     }
+    //</editor-fold>
 
     /**
      * Checks if the given email address is valid
@@ -156,17 +180,5 @@ public class UsersServiceJpa implements PagedUsersService {
                 + "[^-][A-Za-z0-9\\+-]+(\\.[A-Za-z0-9\\+-]+)*(\\.[A-Za-z]{2,})$";
         return email.matches(regexPattern);
     }
-
-    /**
-     * Searches and retrieves the user with the given info from the storage.<br/>
-     * If the user doesn't exist, a {@link UserNotFoundException} would be thrown.
-     *
-     * @param domain - The domain in which the user exists.
-     * @param email  - The user's email address.
-     * @return A {@link UserEntity} for the given domain and email address.
-     */
-    private UserEntity findUserInStorage(String domain, String email) {
-        return usersDao.findById(userConverter.toUserPrimaryKey(email, domain))
-                .orElseThrow(() -> new UserNotFoundException(domain, email));
-    }
+    //</editor-fold>
 }

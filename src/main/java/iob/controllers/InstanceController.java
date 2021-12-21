@@ -49,9 +49,9 @@ public class InstanceController {
     @PutMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children")
     public void bindToChild(
             @RequestBody InstanceIdBoundary childInstanceId, @PathVariable("userDomain") String userDomain,
-            @PathVariable("userEmail") String useEmail, @PathVariable("instanceDomain") String parentInstanceDomain,
+            @PathVariable("userEmail") String userEmail, @PathVariable("instanceDomain") String parentInstanceDomain,
             @PathVariable("instanceId") String parentInstanceId) {
-        instancesService.bindToParent(parentInstanceId, parentInstanceDomain, childInstanceId.getId(), childInstanceId.getDomain());
+        instancesService.bindToParent(userDomain, userEmail, parentInstanceId, parentInstanceDomain, childInstanceId.getId(), childInstanceId.getDomain());
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -96,7 +96,7 @@ public class InstanceController {
                                                               @PathVariable("distance") double distance,
                                                               @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                               @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
-        return instancesService.findByDistance(lat, lng, distance, page, size);
+        return instancesService.findByDistance(userDomain, userEmail, lat, lng, distance, page, size);
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/search/created/{creationWindow}")
@@ -112,14 +112,14 @@ public class InstanceController {
     public List<InstanceBoundary> getAllInstanceChildren(@PathVariable("userDomain") String userDomain,
                                                          @PathVariable("userEmail") String userEmail,
                                                          @PathVariable String instanceDomain, @PathVariable String instanceId) {
-        return instancesService.getChildren(instanceId, instanceDomain);
+        return instancesService.getChildren(userDomain, userEmail, instanceId, instanceDomain);
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/parents", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<InstanceBoundary> getAllInstanceParents(@PathVariable("userDomain") String userDomain,
                                                         @PathVariable("userEmail") String userEmail,
                                                         @PathVariable String instanceDomain, @PathVariable String instanceId) {
-        return instancesService.getParents(instanceId, instanceDomain);
+        return instancesService.getParents(userDomain, userEmail, instanceId, instanceDomain);
     }
 
 }
