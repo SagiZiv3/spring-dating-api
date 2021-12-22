@@ -15,6 +15,7 @@ import iob.logic.exceptions.user.UserNotFoundException;
 import iob.logic.pagedservices.PagedUsersService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -125,6 +126,7 @@ public class UsersServiceJpa implements PagedUsersService {
     //</editor-fold>
 
     //<editor-fold desc="Helper methods">
+
     /**
      * Checks if all the fields in the given user are valid (non-empty and not null).<br/>
      * If one of the fields is invalid, an {@link InvalidInputException} would be thrown.
@@ -133,13 +135,13 @@ public class UsersServiceJpa implements PagedUsersService {
      */
     private void validateUser(@NonNull UserBoundary userBoundary) {
         // Make sure the given email is valid
-        if (userBoundary.getUserId().getEmail() == null || !validateEmail(userBoundary.getUserId().getEmail())) {
+        if (StringUtils.isBlank(userBoundary.getUserId().getEmail()) || !validateEmail(userBoundary.getUserId().getEmail())) {
             throw new InvalidInputException("email", userBoundary.getUserId().getEmail());
         }
-        if (userBoundary.getUsername() == null || userBoundary.getUsername().isEmpty()) {
+        if (StringUtils.isBlank(userBoundary.getUsername())) {
             throw new InvalidInputException("username", userBoundary.getUsername());
         }
-        if (userBoundary.getAvatar() == null || userBoundary.getAvatar().isEmpty()) {
+        if (StringUtils.isBlank(userBoundary.getAvatar())) {
             throw new InvalidInputException("avatar", userBoundary.getAvatar());
         }
     }

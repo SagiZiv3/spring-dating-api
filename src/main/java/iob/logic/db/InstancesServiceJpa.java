@@ -16,6 +16,7 @@ import iob.logic.exceptions.instance.InstanceNotFoundException;
 import iob.logic.pagedservices.PagedInstancesService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -234,10 +235,10 @@ public class InstancesServiceJpa implements PagedInstancesService {
     }
 
     private void validateInstance(InstanceBoundary instance) {
-        if (instance.getName() == null || instance.getName().isEmpty())
+        if (StringUtils.isBlank(instance.getName()))
             throw new InvalidInputException("name", instance.getName());
 
-        if (instance.getType() == null || instance.getType().isEmpty())
+        if (StringUtils.isBlank(instance.getType()))
             throw new InvalidInputException("type", instance.getType());
     }
     //</editor-fold>

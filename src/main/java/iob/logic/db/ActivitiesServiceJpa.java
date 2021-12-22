@@ -11,6 +11,7 @@ import iob.logic.db.dao.ActivitiesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.pagedservices.PagedActivitiesService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -98,7 +99,7 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     }
 
     private void validateActivity(ActivityBoundary activity) {
-        if (activity.getType() == null || activity.getType().isEmpty()) {
+        if (StringUtils.isBlank(activity.getType())) {
             throw new InvalidInputException("type", activity.getType());
         }
         if (activity.getInvokedBy() == null) {
