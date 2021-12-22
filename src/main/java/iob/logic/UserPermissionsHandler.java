@@ -38,9 +38,7 @@ public class UserPermissionsHandler {
     private static String rolesToString(UserRoleParameter... permittedRoles) {
         return Arrays.stream(permittedRoles)
                 // Get the name of every role.
-                .map(UserRoleParameter::name)
-                // Capitalize it to make it more human-readable.
-                .map(WordUtils::capitalizeFully)
+                .map(UserRoleParameter::toString)
                 // Sort the collection to make all the exceptions unified (with same order of roles)
                 .sorted()
                 .collect(Collectors.joining(", "));
