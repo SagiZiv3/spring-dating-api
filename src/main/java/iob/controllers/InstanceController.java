@@ -49,15 +49,19 @@ public class InstanceController {
     @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/children", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<InstanceBoundary> getAllInstanceChildren(@PathVariable("userDomain") String userDomain,
                                                          @PathVariable("userEmail") String userEmail,
-                                                         @PathVariable String instanceDomain, @PathVariable String instanceId) {
-        return instancesService.getChildren(userDomain, userEmail, instanceId, instanceDomain);
+                                                         @PathVariable String instanceDomain, @PathVariable String instanceId,
+                                                         @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                         @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        return instancesService.getChildren(userDomain, userEmail, instanceId, instanceDomain, page, size);
     }
 
     @GetMapping(path = "/{userDomain}/{userEmail}/{instanceDomain}/{instanceId}/parents", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<InstanceBoundary> getAllInstanceParents(@PathVariable("userDomain") String userDomain,
                                                         @PathVariable("userEmail") String userEmail,
-                                                        @PathVariable String instanceDomain, @PathVariable String instanceId) {
-        return instancesService.getParents(userDomain, userEmail, instanceId, instanceDomain);
+                                                        @PathVariable String instanceDomain, @PathVariable String instanceId,
+                                                        @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                        @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        return instancesService.getParents(userDomain, userEmail, instanceId, instanceDomain, page, size);
     }
 
     //<editor-fold desc="Find requests">

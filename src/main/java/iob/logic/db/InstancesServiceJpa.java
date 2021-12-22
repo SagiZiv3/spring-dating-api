@@ -53,9 +53,10 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
     public List<InstanceBoundary> getParents(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
                                              @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                             String childId, String childDomain) {
-        InstanceEntity child = findInstance(childDomain, childId);
-        return instanceConverter.toBoundaries(child.getParentInstances());
+                                             String childId, String childDomain, int page, int size) {
+        return instanceConverter.toBoundaries(instancesDao.findAllByChildInstancesIdAndChildInstancesDomainAndActiveIn(
+                Long.parseLong(childId), childDomain, permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail),
+                getDefaultPageable(page, size)).getContent());
     }
 
     @Override
@@ -63,10 +64,10 @@ public class InstancesServiceJpa implements PagedInstancesService {
     @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
     public List<InstanceBoundary> getChildren(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
                                               @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                              String parentId, String parentDomain) {
-        InstanceEntity parent = findInstance(parentDomain, parentId);
-
-        return instanceConverter.toBoundaries(parent.getChildInstances());
+                                              String parentId, String parentDomain, int page, int size) {
+        return instanceConverter.toBoundaries(instancesDao.findAllByParentInstancesIdAndParentInstancesDomainAndActiveIn(
+                Long.parseLong(parentId), parentDomain, permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail),
+                getDefaultPageable(page, size)).getContent());
     }
 
     @Override

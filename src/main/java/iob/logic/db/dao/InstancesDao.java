@@ -25,6 +25,17 @@ public interface InstancesDao extends PagingAndSortingRepository<InstanceEntity,
                                                                      @Param("allowed_active_states") Collection<Boolean> allowedActiveStates,
                                                                      Pageable pageable);
 
+    // Source: https://stackoverflow.com/a/42586604/9977758
+    Page<InstanceEntity> findAllByParentInstancesIdAndParentInstancesDomainAndActiveIn(@Param("id") long parentId,
+                                                                                       @Param("domain") String parentDomain,
+                                                                                       @Param("allowed_active_states") Collection<Boolean> allowedActiveStates,
+                                                                                       Pageable pageable);
+
+    Page<InstanceEntity> findAllByChildInstancesIdAndChildInstancesDomainAndActiveIn(@Param("id") long childId,
+                                                                                     @Param("domain") String childDomain,
+                                                                                     @Param("allowed_active_states") Collection<Boolean> active,
+                                                                                     Pageable pageable);
+
     // Use distance formula √((Cx - Px)^2 + (Cy - Py)^2) to find if a point is in the given radius
     @Query("select i from InstanceEntity i where sqrt((i.location.locationLat - :center_lat) * (i.location.locationLat - :center_lat) + (i.location.locationLng - :center_lng) * (i.location.locationLng - :center_lng)) <= :radius and i.active in :allowed_active_states")
     Page<InstanceEntity> getAllEntitiesInRadiusAndActive(@Param("center_lat") double centerLat,

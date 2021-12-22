@@ -7,7 +7,7 @@ import java.util.List;
 public interface InstanceWIthBindingsService extends InstancesService {
     void bindToParent(String userDomain, String userEmail, String parentId, String parentDomain, String childId, String childDomain);
 
-    List<InstanceBoundary> getParents(String userDomain, String userEmail, String childId, String childDomain);
+    List<InstanceBoundary> getParents(String userDomain, String userEmail, String childId, String childDomain, int page, int size);
 
-    List<InstanceBoundary> getChildren(String userDomain, String userEmail, String parentId, String parentDomain);
+    List<InstanceBoundary> getChildren(String userDomain, String userEmail, String parentId, String parentDomain, int page, int size);
 }
