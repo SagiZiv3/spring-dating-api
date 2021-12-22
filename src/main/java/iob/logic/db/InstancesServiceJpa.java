@@ -78,7 +78,9 @@ public class InstancesServiceJpa implements PagedInstancesService {
         log.info("Getting {} instances from page {}", size, page);
         Pageable pageable = getDefaultPageable(page, size);
 
-        Page<InstanceEntity> resultPage = this.instancesDao.findAll(pageable);
+        Page<InstanceEntity> resultPage = this.instancesDao.findAllByActiveIn(
+                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail),
+                pageable);
 
         log.info("Converting results to boundaries");
         return instanceConverter.toBoundaries(resultPage.getContent());
@@ -97,7 +99,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
         Pageable pageable = getDefaultPageable(page, size);
         return instanceConverter.toBoundaries(instancesDao.getAllEntitiesInRadiusAndActive(centerLat,
                 centerLng, radius, permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail),
-                pageable));
+                pageable).getContent());
     }
 
     @Override
@@ -108,7 +110,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
                                                           String name, int page, int size) {
         Pageable pageable = getDefaultPageable(page, size);
         return instanceConverter.toBoundaries(instancesDao.findAllByNameAndActiveIn(name,
-                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable));
+                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable).getContent());
     }
 
     @Override
@@ -119,7 +121,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
                                                           String type, int page, int size) {
         Pageable pageable = getDefaultPageable(page, size);
         return instanceConverter.toBoundaries(instancesDao.findAllByTypeAndActiveIn(type,
-                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable));
+                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable).getContent());
     }
 
     @Override
@@ -136,7 +138,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
 
         return instanceConverter.toBoundaries(instancesDao.findAllByCreatedTimestampBetweenAndActiveIn(
                 timeFrame.getStartDate(), timeFrame.getEndDate(),
-                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable));
+                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable).getContent());
     }
 
     //<editor-fold desc="Deprecated methods">
