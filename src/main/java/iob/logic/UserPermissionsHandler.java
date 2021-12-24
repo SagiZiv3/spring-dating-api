@@ -21,7 +21,7 @@ public class UserPermissionsHandler {
         this.usersService = usersService;
     }
 
-    public void throwIfNotAuthorized(String userDomain, String userEmail, UserRoleParameter[] permittedRoles) {
+    public void throwIfNotAuthorized(String userDomain, String userEmail, UserRoleParameter... permittedRoles) {
         UserBoundary user = usersService.login(userDomain, userEmail);
         UserRoleParameter passedUserRole = UserRoleParameter.valueOf(user.getRole().name().toUpperCase());
 

@@ -3,6 +3,7 @@ package iob.logic.db;
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.converters.ActivityConverter;
 import iob.data.ActivityEntity;
+import iob.logic.UserPermissionsHandler;
 import iob.logic.annotations.ParameterType;
 import iob.logic.annotations.RoleParameter;
 import iob.logic.annotations.RoleRestricted;
@@ -31,13 +32,15 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     //<editor-fold desc="Class variables">
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
+    private final UserPermissionsHandler userPermissionsHandler;
     private String domainName;
     //</editor-fold>
 
     @Autowired
-    public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao) {
+    public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao, UserPermissionsHandler userPermissionsHandler) {
         this.activityConverter = activityConverter;
         this.activitiesDao = activitiesDao;
+        this.userPermissionsHandler = userPermissionsHandler;
     }
 
     //<editor-fold desc="Get methods">
@@ -65,9 +68,20 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     @Override
     @Transactional
     public Object invokeActivity(ActivityBoundary activity) {
-        return tryInvokeActivity(activity.getInvokedBy().getUserId().getDomain(),
-                activity.getInvokedBy().getUserId().getEmail(),
-                activity);
+        // Make sure that the user is actually a player.
+        userPermissionsHandler.throwIfNotAuthorized(activity.getInvokedBy().getUserId().getDomain(),
+                activity.getInvokedBy().getUserId().getEmail(), UserRoleParameter.PLAYER);
+        log.info("Validating activity");
+        validateActivity(activity);
+        ActivityEntity entityToStore = activityConverter.toEntity(activity);
+        entityToStore.setCreatedTimestamp(new Date());
+        entityToStore.setDomain(domainName);
+        log.info("Converted to an entity: {}", entityToStore);
+
+        entityToStore = activitiesDao.save(entityToStore);
+        log.info("Activity was saved in DB: {}", entityToStore);
+
+        return activityConverter.toBoundary(entityToStore);
     }
 
     @Override
@@ -81,22 +95,6 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     //</editor-fold>
 
     //<editor-fold desc="Helper methods">
-    @RoleRestricted(permittedRoles = UserRoleParameter.PLAYER)
-    private Object tryInvokeActivity(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                     @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                     ActivityBoundary activity) {
-        log.info("Validating activity");
-        validateActivity(activity);
-        ActivityEntity entityToStore = activityConverter.toEntity(activity);
-        entityToStore.setCreatedTimestamp(new Date());
-        entityToStore.setDomain(domainName);
-        log.info("Converted to entityToStore: {}", entityToStore);
-
-        entityToStore = activitiesDao.save(entityToStore);
-        log.info("Activity was saved in DB: {}", entityToStore);
-
-        return activityConverter.toBoundary(entityToStore);
-    }
 
     private void validateActivity(ActivityBoundary activity) {
         if (StringUtils.isBlank(activity.getType())) {
