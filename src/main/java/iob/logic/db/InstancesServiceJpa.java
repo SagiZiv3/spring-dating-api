@@ -253,7 +253,7 @@ public class InstancesServiceJpa implements PagedInstancesService {
                 .orElseThrow(() -> new InstanceNotFoundException(domain, id));
     }
 
-    private static Pageable getDefaultPageable(int page, int size) {
+    private static @NonNull Pageable getDefaultPageable(int page, int size) {
         Sort.Direction direction = Sort.Direction.DESC;
         return PageRequest.of(page, size, direction, "createdTimestamp", "id");
     }

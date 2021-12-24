@@ -3,6 +3,7 @@ package iob.data;
 import iob.data.converters.MapToStringConverter;
 import iob.data.embeddedentities.LocationEntity;
 import iob.data.primarykeys.InstancePrimaryKey;
+import iob.data.primarykeys.UserPrimaryKey;
 import iob.logic.exceptions.instance.InvalidBindingOperationException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,8 +11,10 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -24,7 +27,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -68,9 +70,12 @@ public class InstanceEntity {
     private Date createdTimestamp;
     @Embedded
     private LocationEntity location = new LocationEntity();
-    @ManyToOne(fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private UserEntity createdBy;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "email", column = @Column(name = "CREATED_BY_EMAIL")),
+            @AttributeOverride(name = "domain", column = @Column(name = "CREATED_BY_DOMAIN"))
+    })
+    private UserPrimaryKey createdBy;
     @Lob
     @Convert(converter = MapToStringConverter.class)
     private Map<String, Object> instanceAttributes;

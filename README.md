@@ -8,6 +8,7 @@
 3. `RequestMapping` and `GetMapping` - https://stackoverflow.com/iob/53132931
 4. Complex primary keys - https://stackoverflow.com/questions/41143913/sql-jpa-multiple-columns-as-primary-key
 5. HTTP status codes - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+6. Using multiple embedded classes in an entity - https://stackoverflow.com/a/12912377/9977758
 
 ---
 **Edit iob file, create iob new file, and clone from Bitbucket in under 2 minutes**

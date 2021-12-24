@@ -5,9 +5,9 @@ import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.boundaries.helpers.Location;
 import iob.data.InstanceEntity;
-import iob.data.UserEntity;
 import iob.data.embeddedentities.LocationEntity;
 import iob.data.primarykeys.InstancePrimaryKey;
+import iob.data.primarykeys.UserPrimaryKey;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,7 +43,7 @@ public class InstanceConverter {
         return new Location(location.getLocationLat(), location.getLocationLng());
     }
 
-    private CreatedByBoundary toCreatedByBoundary(UserEntity createdBy) {
+    private CreatedByBoundary toCreatedByBoundary(UserPrimaryKey createdBy) {
         return new CreatedByBoundary(userConverter.toUserIdBoundary(createdBy.getDomain(), createdBy.getEmail()));
     }
 
@@ -75,11 +75,11 @@ public class InstanceConverter {
                 .collect(Collectors.toList());
     }
 
-    public UserEntity toCreatedByEntity(CreatedByBoundary createdBy) {
+    public UserPrimaryKey toCreatedByEntity(CreatedByBoundary createdBy) {
         if (createdBy == null) {
             return null;
         }
-        UserEntity entity = new UserEntity();
+        UserPrimaryKey entity = new UserPrimaryKey();
         entity.setEmail(createdBy.getUserId().getEmail());
         entity.setDomain(createdBy.getUserId().getDomain());
         return entity;

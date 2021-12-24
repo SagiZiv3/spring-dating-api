@@ -5,9 +5,9 @@ import iob.boundaries.helpers.ActivityIdBoundary;
 import iob.boundaries.helpers.InstanceIdWrapper;
 import iob.boundaries.helpers.InvokedByBoundary;
 import iob.data.ActivityEntity;
-import iob.data.InstanceEntity;
-import iob.data.UserEntity;
 import iob.data.primarykeys.ActivityPrimaryKey;
+import iob.data.primarykeys.InstancePrimaryKey;
+import iob.data.primarykeys.UserPrimaryKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,11 +35,11 @@ public class ActivityConverter {
         return boundary;
     }
 
-    private InstanceIdWrapper toInstanceIdBoundary(InstanceEntity instanceEntity) {
+    private InstanceIdWrapper toInstanceIdBoundary(InstancePrimaryKey instanceEntity) {
         return new InstanceIdWrapper(instanceConverter.toInstanceIdBoundary(instanceEntity.getDomain(), instanceEntity.getId()));
     }
 
-    private InvokedByBoundary toInvokedByBoundary(UserEntity userEntity) {
+    private InvokedByBoundary toInvokedByBoundary(UserPrimaryKey userEntity) {
         return new InvokedByBoundary(userConverter.toUserIdBoundary(userEntity.getDomain(), userEntity.getEmail()));
     }
 
@@ -62,15 +62,15 @@ public class ActivityConverter {
         return entity;
     }
 
-    private InstanceEntity toInstanceIdEntity(InstanceIdWrapper instanceId) {
-        InstanceEntity entity = new InstanceEntity();
+    private InstancePrimaryKey toInstanceIdEntity(InstanceIdWrapper instanceId) {
+        InstancePrimaryKey entity = new InstancePrimaryKey();
         entity.setDomain(instanceId.getInstanceId().getDomain());
         entity.setId(Long.parseLong(instanceId.getInstanceId().getId()));
         return entity;
     }
 
-    private UserEntity toInvokedByEntity(InvokedByBoundary invokedBy) {
-        UserEntity entity = new UserEntity();
+    private UserPrimaryKey toInvokedByEntity(InvokedByBoundary invokedBy) {
+        UserPrimaryKey entity = new UserPrimaryKey();
         entity.setDomain(invokedBy.getUserId().getDomain());
         entity.setEmail(invokedBy.getUserId().getEmail());
         return entity;
