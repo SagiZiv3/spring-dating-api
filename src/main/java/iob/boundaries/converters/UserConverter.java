@@ -21,6 +21,15 @@ public class UserConverter {
         boundary.setUsername(entity.getUsername());
         boundary.setAvatar(entity.getAvatar());
         boundary.setRole(toUserRoleBoundary(entity.getRole()));
+
+        boundary.setHeightInCm(entity.getHeightInCm());
+        boundary.setAbout(entity.getAbout());
+        boundary.setAttractedTo(entity.getAttractedTo());
+        boundary.setLanguages(entity.getLanguages());
+        boundary.setInterestedIn(entity.getInterestedIn());
+        boundary.setGender(entity.getGender());
+        boundary.setRelationshipType(entity.getRelationshipType());
+        boundary.setLookingFor(entity.getLookingFor());
         return boundary;
     }
 
@@ -48,6 +57,19 @@ public class UserConverter {
         entity.setAvatar(userBoundary.getAvatar());
         entity.setUsername(userBoundary.getUsername());
         entity.setRole(toUserRoleEntity(userBoundary.getRole()));
+
+        if (userBoundary.getHeightInCm() != null)
+            entity.setHeightInCm(userBoundary.getHeightInCm());
+        else
+            entity.setHeightInCm(0);
+        entity.setAbout(userBoundary.getAbout());
+        entity.setAttractedTo(userBoundary.getAttractedTo());
+        entity.setLanguages(userBoundary.getLanguages());
+        entity.setInterestedIn(userBoundary.getInterestedIn());
+        entity.setGender(userBoundary.getGender());
+        entity.setRelationshipType(userBoundary.getRelationshipType());
+        entity.setLookingFor(userBoundary.getLookingFor());
+
         if (userBoundary.getUserId() != null) {
             UserPrimaryKey userKey = toUserPrimaryKey(userBoundary.getUserId());
             entity.setDomain(userKey.getDomain());

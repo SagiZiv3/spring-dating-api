@@ -43,6 +43,14 @@ public class UserEntity {
     @NonNull
     private String username;
     private String avatar;
+    private int heightInCm;
+    private String languages;
+    private String lookingFor; // Maybe change to enum, options: Long/Short term, One time
+    private String interestedIn; // Male / Female / Both / None
+    private String about;
+    private String gender; // Male / Female / All / None
+    private String attractedTo; // Straight / Bi / Homo / None
+    private String relationshipType; // Monogamous / Polygamous / Hookups / None
     //</editor-fold>
 
     @Override
