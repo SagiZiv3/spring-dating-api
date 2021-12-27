@@ -4,6 +4,7 @@ import iob.boundaries.ActivityBoundary;
 import iob.boundaries.converters.ActivityConverter;
 import iob.data.ActivityEntity;
 import iob.logic.UserPermissionsHandler;
+import iob.logic.activities.InvokableActivity;
 import iob.logic.annotations.ParameterType;
 import iob.logic.annotations.RoleParameter;
 import iob.logic.annotations.RoleRestricted;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,14 +35,16 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
     private final UserPermissionsHandler userPermissionsHandler;
+    private final ApplicationContext applicationContext;
     private String domainName;
     //</editor-fold>
 
     @Autowired
-    public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao, UserPermissionsHandler userPermissionsHandler) {
+    public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao, UserPermissionsHandler userPermissionsHandler, ApplicationContext applicationContext) {
         this.activityConverter = activityConverter;
         this.activitiesDao = activitiesDao;
         this.userPermissionsHandler = userPermissionsHandler;
+        this.applicationContext = applicationContext;
     }
 
     //<editor-fold desc="Get methods">
@@ -71,6 +75,13 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         // Make sure that the user is actually a player.
         userPermissionsHandler.throwIfNotAuthorized(activity.getInvokedBy().getUserId().getDomain(),
                 activity.getInvokedBy().getUserId().getEmail(), UserRoleParameter.PLAYER);
+        saveEntity(activity);
+
+        return applicationContext.getBean(activity.getType(), InvokableActivity.class)
+                .invoke(activity);
+    }
+
+    private void saveEntity(ActivityBoundary activity) {
         log.info("Validating activity");
         validateActivity(activity);
         ActivityEntity entityToStore = activityConverter.toEntity(activity);
@@ -80,8 +91,6 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
 
         entityToStore = activitiesDao.save(entityToStore);
         log.info("Activity was saved in DB: {}", entityToStore);
-
-        return activityConverter.toBoundary(entityToStore);
     }
 
     @Override

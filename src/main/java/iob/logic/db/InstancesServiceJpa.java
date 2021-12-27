@@ -2,10 +2,12 @@ package iob.logic.db;
 
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.InstanceConverter;
+import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.boundaries.helpers.TimeFrame;
 import iob.data.InstanceEntity;
 import iob.data.TimeFrameEntity;
 import iob.logic.UserPermissionsHandler;
+import iob.logic.activities.CustomizedInstancesService;
 import iob.logic.annotations.ParameterType;
 import iob.logic.annotations.RoleParameter;
 import iob.logic.annotations.RoleRestricted;
@@ -26,12 +28,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 @Service
 @Slf4j
-public class InstancesServiceJpa implements PagedInstancesService {
+public class InstancesServiceJpa implements PagedInstancesService, CustomizedInstancesService {
     //<editor-fold desc="Class variables">
     private String domainName;
     private final InstancesDao instancesDao;
@@ -142,6 +145,32 @@ public class InstancesServiceJpa implements PagedInstancesService {
                 permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail), pageable).getContent());
     }
 
+    //</editor-fold>
+
+    @Override
+    public InstanceBoundary storeInstance(InstanceBoundary instanceBoundary) {
+        return null;
+    }
+
+    @Override
+    public void bindInstances(InstanceIdBoundary parent, InstanceIdBoundary child) {
+        InstanceEntity parentEntity = findInstance(parent.getDomain(), parent.getId());
+        InstanceEntity childEntity = findInstance(child.getDomain(), child.getId());
+
+        parentEntity.addChild(childEntity);
+        childEntity.addParent(parentEntity);
+        instancesDao.save(parentEntity);
+    }
+
+    @Override
+    public List<InstanceBoundary> getChildInstancesOfType(InstanceIdBoundary parentId, String type) {
+        Page<InstanceEntity> entities = instancesDao.findAllByActiveIn(Collections.singleton(true),
+                getDefaultPageable(1, 1));
+        return instanceConverter.toBoundaries(
+                entities.getContent()
+        );
+    }
+
     //<editor-fold desc="Deprecated methods">
     @Override
     @Transactional(readOnly = true)
@@ -244,7 +273,6 @@ public class InstancesServiceJpa implements PagedInstancesService {
         if (StringUtils.isBlank(instance.getType()))
             throw new InvalidInputException("type", instance.getType());
     }
-    //</editor-fold>
 
     //<editor-fold desc="Helper methods">
     private InstanceEntity findInstance(String domain, String id) {
