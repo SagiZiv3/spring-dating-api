@@ -5,8 +5,12 @@ import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.Location;
+import iob.logic.exceptions.instance.InstanceNotFoundException;
+import iob.logic.instancesearching.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 
 @Service("userLogin")
 public class UserLoginActivity implements InvokableActivity {
@@ -46,17 +50,25 @@ public class UserLoginActivity implements InvokableActivity {
          *   }
          * }
          * */
+        By by = By.childOf(activityBoundary.getInstance().getInstanceId())
+                .and(By.type(InstanceOptions.Types.USER_LOGIN))
+                .and(By.activeIn(Collections.singleton(true)));
+        try {
+            instancesService.findEntity(by);
+        } catch (InstanceNotFoundException ignored) {
+
+        }
         // Extract location from activity
         // The location is the user's current location.
         Location location = objectMapper.convertValue(
-                activityBoundary.getActivityAttributes().get("location"),
+                activityBoundary.getActivityAttributes().get(InstanceOptions.Attributes.LOCATION),
                 Location.class
         );
         // Create an InstanceBoundary of type "user"
         InstanceBoundary instanceBoundary = new InstanceBoundary();
         instanceBoundary.setCreatedBy(new CreatedByBoundary(activityBoundary.getInvokedBy().getUserId()));
         instanceBoundary.setActive(true);
-        instanceBoundary.setType("LOGIN");
+        instanceBoundary.setType(InstanceOptions.Types.USER_LOGIN);
         instanceBoundary.setName("USER_LOGIN");
         instanceBoundary.setLocation(location);
         // Save it in the database

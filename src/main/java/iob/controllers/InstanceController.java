@@ -56,7 +56,7 @@ public class InstanceController {
                                                          @PathVariable String instanceDomain, @PathVariable String instanceId,
                                                          @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                          @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
-        return instancesService.findAllEntities(By.parent(instanceDomain, instanceId), userDomain, userEmail, page, size);
+        return instancesService.findAllEntities(By.childOf(instanceDomain, instanceId), userDomain, userEmail, page, size);
     }
 
     @GetMapping(path = URLS.INSTANCES.GET_PARENTS, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -65,7 +65,7 @@ public class InstanceController {
                                                         @PathVariable String instanceDomain, @PathVariable String instanceId,
                                                         @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                         @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
-        return instancesService.findAllEntities(By.child(instanceDomain, instanceId), userDomain, userEmail, page, size);
+        return instancesService.findAllEntities(By.parentOf(instanceDomain, instanceId), userDomain, userEmail, page, size);
     }
     //</editor-fold>
 

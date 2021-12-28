@@ -20,14 +20,13 @@ public class UserLogoutActivity implements InvokableActivity {
     @Override
     public Object invoke(ActivityBoundary activityBoundary) {
         // This activity would simply mark the login instance as inactive
-        // Step 1: Find the instance in the system
-        // For this step we need to find child instances by type, and take the most recent one
-        By by = By.child(activityBoundary.getInstance().getInstanceId())
-                .and(By.type("LOGIN"))
-                .and(By.activeIn(Collections.singleton(true)));
         // For simplicity, we suppose that the user logs in only from one device, therefore there is only one active instance.
+        // So, we need to find the active login instance and deactivate it.
+        By by = By.childOf(activityBoundary.getInstance().getInstanceId())
+                .and(By.type(InstanceOptions.Types.USER_LOGIN))
+                .and(By.activeIn(Collections.singleton(true)));
         InstanceBoundary recentLogin = instancesService.findEntity(by);
         recentLogin.setActive(false);
-        return instancesService.store(recentLogin); // TODO: update the instance
+        return instancesService.update(recentLogin);
     }
 }

@@ -17,13 +17,4 @@ public interface CustomizedInstancesService {
     List<InstanceBoundary> findAllEntities(By by, Pageable page);
 
     InstanceBoundary findEntity(By by);
-
-    /*
-     * Required functions:
-     * 1) Save instance.
-     * 2) Update instance.
-     * 3) Bind 2 instances.
-     * 4) Get instance based on type and createdBy.
-     * 5) Get child instance of specific type.
-     * */
 }

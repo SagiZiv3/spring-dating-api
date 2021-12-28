@@ -34,15 +34,19 @@ public abstract class By {
         return new ByCreationDate(timeFrame);
     }
 
-    public static By parent(String parentDomain, String parentId) {
+    public static By childOf(InstanceIdBoundary parentId) {
+        return childOf(parentId.getDomain(), parentId.getId());
+    }
+
+    public static By childOf(String parentDomain, String parentId) {
         return new ByParent(parentDomain, parentId);
     }
 
-    public static By child(InstanceIdBoundary childId) {
-        return child(childId.getDomain(), childId.getId());
+    public static By parentOf(InstanceIdBoundary childId) {
+        return parentOf(childId.getDomain(), childId.getId());
     }
 
-    public static By child(String childDomain, String childId) {
+    public static By parentOf(String childDomain, String childId) {
         return new ByChild(childDomain, childId);
     }
 

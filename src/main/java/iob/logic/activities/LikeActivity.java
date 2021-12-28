@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.UserIdBoundary;
+import iob.logic.exceptions.activity.InvalidLikeActivityException;
 import iob.logic.instancesearching.By;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class LikeActivity implements InvokableActivity {
 
     @Override
     public Object invoke(ActivityBoundary activityBoundary) {
+        log.info("Invoking like activity");
         /*
          * Activity expected structure (ignoring unnecessary attributes):
          * {
@@ -53,44 +55,44 @@ public class LikeActivity implements InvokableActivity {
          * */
         // We have the id of the user that created the activity, its instance id
         // and the id of the liked user.
-        // First, we need to find if the invoking user and check if he already liked the other user.
-        log.info("Invoking like activity");
+        // First, we need to find the invoking user and check if he already liked the other user.
         UserIdBoundary invokingUserId = activityBoundary.getInvokedBy().getUserId();
         UserIdBoundary likedUserId = objectMapper.convertValue(
-                activityBoundary.getActivityAttributes().get("otherUser"),
+                activityBoundary.getActivityAttributes().get(InstanceOptions.Attributes.OTHER_USER),
                 UserIdBoundary.class
         );
         if (invokingUserId.equals(likedUserId)) {
-            throw new RuntimeException("User can't like himself!");
+            throw new InvalidLikeActivityException(invokingUserId.getEmail(), invokingUserId.getDomain());
         }
 
         log.info("Searching for users' instances");
-        By byInvokingUser = By.type("USER").and(By.id(activityBoundary.getInstance().getInstanceId()));
-        By byLikedUser = By.type("USER").and(By.userId(likedUserId));
+        By byInvokingUser = By.type(InstanceOptions.Types.USER).and(By.id(activityBoundary.getInstance().getInstanceId()));
+        By byLikedUser = By.type(InstanceOptions.Types.USER).and(By.userId(likedUserId));
         InstanceBoundary invokingUserInstance = instancesService.findEntity(byInvokingUser);
         InstanceBoundary likedUserInstance = instancesService.findEntity(byLikedUser);
         log.debug("Invoking user: {}", invokingUserInstance);
         log.debug("Liked user: {}", likedUserInstance);
 
-        List<UserIdBoundary> usersILiked = getLikesForUser(KEYS.OUTGOING_LIKES, invokingUserInstance);
-        List<UserIdBoundary> usersThatLikedTheOtherUser = getLikesForUser(KEYS.INCOMING_LIKES, likedUserInstance);
+        List<UserIdBoundary> usersILiked = getLikesForUser(InstanceOptions.Attributes.OUTGOING_LIKES, invokingUserInstance);
+        List<UserIdBoundary> usersThatLikedTheOtherUser = getLikesForUser(InstanceOptions.Attributes.INCOMING_LIKES, likedUserInstance);
 
         // If liked for second time, assume unlike and remove the like from both users and return no match
         if (usersILiked.contains(likedUserId)) {
             usersILiked.remove(likedUserId);
             usersThatLikedTheOtherUser.remove(invokingUserId);
-            saveAttributesChanges(invokingUserInstance, usersILiked, KEYS.OUTGOING_LIKES);
-            saveAttributesChanges(likedUserInstance, usersThatLikedTheOtherUser, KEYS.INCOMING_LIKES);
-            return Collections.singletonMap("isMatch", false);
+            saveAttributesChanges(invokingUserInstance, usersILiked, InstanceOptions.Attributes.OUTGOING_LIKES);
+            saveAttributesChanges(likedUserInstance, usersThatLikedTheOtherUser, InstanceOptions.Attributes.INCOMING_LIKES);
+            return Collections.singletonMap(KEYS.IS_MATCH, false);
         }
 
         // If not already liked, add the like to the users and check if the other user liked the invoking user.
         usersILiked.add(likedUserId);
         usersThatLikedTheOtherUser.add(invokingUserId);
-        saveAttributesChanges(invokingUserInstance, usersILiked, KEYS.OUTGOING_LIKES);
-        saveAttributesChanges(likedUserInstance, usersThatLikedTheOtherUser, KEYS.INCOMING_LIKES);
-        boolean isMatch = getLikesForUser(KEYS.OUTGOING_LIKES, likedUserInstance).contains(invokingUserId);
-        return Collections.singletonMap("isMatch", isMatch);
+        saveAttributesChanges(invokingUserInstance, usersILiked, InstanceOptions.Attributes.OUTGOING_LIKES);
+        saveAttributesChanges(likedUserInstance, usersThatLikedTheOtherUser, InstanceOptions.Attributes.INCOMING_LIKES);
+        // Check if the liked user also liked the invoking user
+        boolean isMatch = getLikesForUser(InstanceOptions.Attributes.OUTGOING_LIKES, likedUserInstance).contains(invokingUserId);
+        return Collections.singletonMap(KEYS.IS_MATCH, isMatch);
     }
 
     private List<UserIdBoundary> getLikesForUser(String likesType, InstanceBoundary userInstance) {
@@ -109,7 +111,6 @@ public class LikeActivity implements InvokableActivity {
     }
 
     private interface KEYS {
-        String INCOMING_LIKES = "incoming_likes";
-        String OUTGOING_LIKES = "outgoing_likes";
+        String IS_MATCH = "is_match";
     }
 }
