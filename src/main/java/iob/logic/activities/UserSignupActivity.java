@@ -46,10 +46,15 @@ public class UserSignupActivity implements InvokableActivity {
         // Extract location from activity
         // The location is the user's home address.
         System.err.println("Invoking user sign up activity");
-        Location location = objectMapper.convertValue(
-                activityBoundary.getActivityAttributes().get("location"),
-                Location.class
-        );
+        Location location;
+        if (activityBoundary.getActivityAttributes().containsKey("location")) {
+            location = objectMapper.convertValue(
+                    activityBoundary.getActivityAttributes().get("location"),
+                    Location.class
+            );
+        } else {
+            location = null;
+        }
         System.err.printf("Specified location: %s%n", location);
         // Create an InstanceBoundary of type "user"
         InstanceBoundary instanceBoundary = new InstanceBoundary();

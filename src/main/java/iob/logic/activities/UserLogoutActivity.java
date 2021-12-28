@@ -2,7 +2,6 @@ package iob.logic.activities;
 
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
-import iob.logic.exceptions.instance.InstanceNotFoundException;
 import iob.logic.instancesearching.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class UserLogoutActivity implements InvokableActivity {
                 .and(By.type("LOGIN"))
                 .and(By.activeIn(Collections.singleton(true)));
         // For simplicity, we suppose that the user logs in only from one device, therefore there is only one active instance.
-        InstanceBoundary recentLogin = instancesService.findEntity(by).orElseThrow(InstanceNotFoundException::new);
+        InstanceBoundary recentLogin = instancesService.findEntity(by);
         recentLogin.setActive(false);
         return instancesService.store(recentLogin); // TODO: update the instance
     }
