@@ -60,7 +60,7 @@ public class UserLoginActivity implements InvokableActivity {
         instanceBoundary.setName("USER_LOGIN");
         instanceBoundary.setLocation(location);
         // Save it in the database
-        InstanceBoundary storedInstance = instancesService.storeInstance(instanceBoundary);
+        InstanceBoundary storedInstance = instancesService.store(instanceBoundary);
         instancesService.bindInstances(activityBoundary.getInstance().getInstanceId(),
                 storedInstance.getInstanceId());
         // Return the instance

@@ -2,10 +2,12 @@ package iob.logic.activities;
 
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
+import iob.logic.exceptions.instance.InstanceNotFoundException;
+import iob.logic.instancesearching.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Collections;
 
 @Service("userLogout")
 public class UserLogoutActivity implements InvokableActivity {
@@ -21,10 +23,12 @@ public class UserLogoutActivity implements InvokableActivity {
         // This activity would simply mark the login instance as inactive
         // Step 1: Find the instance in the system
         // For this step we need to find child instances by type, and take the most recent one
-        List<InstanceBoundary> loginInstances = instancesService.getChildInstancesOfType(activityBoundary.getInstance().getInstanceId(),
-                "LOGIN");
-        InstanceBoundary recentLogin = loginInstances.get(0);
+        By by = By.child(activityBoundary.getInstance().getInstanceId())
+                .and(By.type("LOGIN"))
+                .and(By.activeIn(Collections.singleton(true)));
+        // For simplicity, we suppose that the user logs in only from one device, therefore there is only one active instance.
+        InstanceBoundary recentLogin = instancesService.findEntity(by).orElseThrow(InstanceNotFoundException::new);
         recentLogin.setActive(false);
-        return instancesService.storeInstance(recentLogin);
+        return instancesService.store(recentLogin); // TODO: update the instance
     }
 }
