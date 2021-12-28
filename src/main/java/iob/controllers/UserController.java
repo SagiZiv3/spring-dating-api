@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "/iob/users")
+@RequestMapping(path = URLS.USERS.ROOT)
 public class UserController {
     private final UsersService usersService;
     private final UserConverter userConverter;
@@ -26,19 +26,19 @@ public class UserController {
         this.userConverter = userConverter;
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = URLS.USERS.CREATE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserBoundary createUser(@RequestBody NewUserBoundary newUser) {
         UserBoundary userBoundary = userConverter.toBoundary(newUser);
         return usersService.createUser(userBoundary);
     }
 
-    @PutMapping(path = "/{userDomain}/{userEmail}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = URLS.USERS.UPDATE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateUser(@RequestBody UserBoundary user, @PathVariable("userDomain") String userDomain,
                            @PathVariable("userEmail") String userEmail) {
         usersService.updateUser(userDomain, userEmail, user);
     }
 
-    @GetMapping(path = "/login/{userDomain}/{userEmail}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = URLS.USERS.LOGIN, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserBoundary getUser(@PathVariable("userDomain") String userDomain,
                                 @PathVariable("userEmail") String userEmail) {
         return usersService.login(userDomain, userEmail);

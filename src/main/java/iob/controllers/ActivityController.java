@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "/iob/activities")
+@RequestMapping(path = URLS.ACTIVITIES.ROOT)
 public class ActivityController {
     private final ActivitiesService activitiesService;
 
@@ -19,7 +19,7 @@ public class ActivityController {
         this.activitiesService = activitiesService;
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = URLS.ACTIVITIES.INVOKE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object invokeInstanceActivity(@RequestBody ActivityBoundary activity) {
         return activitiesService.invokeActivity(activity);
     }

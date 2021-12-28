@@ -11,7 +11,8 @@ public class InstanceExceptionsHandler {
     @ExceptionHandler(InstanceNotFoundException.class)
     private ResponseEntity<ExceptionResponse> handleInstanceNotFoundException(InstanceNotFoundException e) {
         ExceptionResponse response = new ExceptionResponse(
-                String.format("Instance with id '%s' doesn't exist in domain '%s'", e.getId(), e.getDomain()),
+                e.getMessage(),
+//                String.format("Instance with id '%s' doesn't exist in domain '%s'", e.getId(), e.getDomain()),
                 HttpStatus.NOT_FOUND
         );
         return new ResponseEntity<>(response, response.getHttpStatus());
