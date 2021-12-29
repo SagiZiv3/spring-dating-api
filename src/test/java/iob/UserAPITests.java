@@ -159,8 +159,6 @@ public class UserAPITests extends AbstractTestClass {
 
     // Enable access from everywhere using: UserAPITests.KEYS.{___}
     public interface KEYS {
-        String USERNAME = "UserAPITests_InvokingUser";
-        String USER_AVATAR = "UserAPITests_USER_AVATAR";
         String USER_EMAIL_Player = "UserAPITests_Player@userApiTest.com";
         String USERNAME_Player = "UserAPITests_InvokingUser_Player";
         String USER_AVATAR_Player = "UserAPITests_USER_AVATAR_Player";
