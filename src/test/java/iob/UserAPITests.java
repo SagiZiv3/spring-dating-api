@@ -126,14 +126,16 @@ public class UserAPITests extends AbstractTestClass {
 
         // Send update to server
         String url = super.buildUrl(domainName, KEYS.USER_EMAIL_Player);
-        NewUserBoundary updatedVersion = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player + "_Updated_");
+        UserBoundary updatedVersion = new UserBoundary();
+        String updatedAvatar = "updated_avatar";
+        updatedVersion.setAvatar(updatedAvatar);
         this.client.put(url, updatedVersion);
 
 
         // get user from server
         url = super.buildUrl("login", domainName, KEYS.USER_EMAIL_Player);
         UserBoundary returnedFromServer = this.client.getForObject(url, UserBoundary.class);
-
+        assertThat(returnedFromServer.getAvatar()).isEqualTo(updatedAvatar);
 
         /*
         CRUD:
