@@ -4,6 +4,7 @@ import iob.boundaries.NewUserBoundary;
 import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.UserConverter;
 import iob.logic.UsersService;
+import iob.logic.exceptions.activity.MultipleLoginsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,5 +43,10 @@ public class UserController {
     public UserBoundary getUser(@PathVariable("userDomain") String userDomain,
                                 @PathVariable("userEmail") String userEmail) {
         return usersService.login(userDomain, userEmail);
+    }
+
+    @GetMapping(path = "test")
+    public void TEST() {
+        throw new MultipleLoginsException();
     }
 }
