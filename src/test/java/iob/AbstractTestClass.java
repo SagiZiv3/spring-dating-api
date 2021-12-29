@@ -1,7 +1,9 @@
 package iob;
 
+import iob.boundaries.InstanceBoundary;
 import iob.boundaries.NewUserBoundary;
-import iob.boundaries.helpers.UserRoleBoundary;
+import iob.boundaries.UserBoundary;
+import iob.boundaries.helpers.Location;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,14 +16,11 @@ import org.springframework.web.client.RestTemplate;
 // TL;DR Make sure the class would be created only once and not every test method
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractTestClass {
-
-    private final String rootName;
     protected String domainName;
     protected RestTemplate client;
     private String url;
 
-    public AbstractTestClass(String rootName) {
-        this.rootName = rootName;
+    public AbstractTestClass() {
         client = new RestTemplate();
     }
 
@@ -38,29 +37,42 @@ public abstract class AbstractTestClass {
 
     @BeforeEach
     public void createAdminUser() {
-        NewUserBoundary adminUser = new NewUserBoundary(ADMIN_KEYS.ADMIN_EMAIL, UserRoleBoundary.ADMIN, "_", "_");
-        String createUserUrl = String.format("%s/%s", url, "users");
-        client.postForObject(createUserUrl, adminUser, NewUserBoundary.class);
+        createUser(UserRole.ADMIN);
     }
 
-    @AfterEach
-    public void clearDatabase() {
-        client.delete(buildAdminUrl(domainName, ADMIN_KEYS.ADMIN_EMAIL));
-    }
-
-    protected String buildAdminUrl(String... parts) {
-        return String.format("%s/admin/%s/%s", url, rootName, String.join("/", parts));
+    protected UserBoundary createUser(UserRole role) {
+        NewUserBoundary user = new NewUserBoundary(role.getEmail(), role.getUserRoleBoundary(), "_", "_");
+        return client.postForObject(buildUrl("users"), user, UserBoundary.class);
     }
 
     @Test
     public void contextLoads() {
     }
 
-    protected String buildUrl(String... parts) {
+    protected String buildUrl(String rootName, String... parts) {
         return String.format("%s/%s/%s", url, rootName, String.join("/", parts));
     }
 
-    protected interface ADMIN_KEYS {
-        String ADMIN_EMAIL = "sagi@shahar.co.il";
+    @AfterEach
+    public void clearDatabase() {
+        client.delete(buildAdminUrl("instances", domainName, UserRole.ADMIN.getEmail()));
+        client.delete(buildAdminUrl("activities", domainName, UserRole.ADMIN.getEmail()));
+        client.delete(buildAdminUrl("users", domainName, UserRole.ADMIN.getEmail()));
+    }
+
+    protected String buildAdminUrl(String rootName, String... parts) {
+        return String.format("%s/admin/%s/%s", url, rootName, String.join("/", parts));
+    }
+
+    protected InstanceBoundary createInstance(String instanceType, String instanceName) {
+        InstanceBoundary addMe = new InstanceBoundary();
+        addMe.setName(instanceName);
+        addMe.setType(instanceType);
+        addMe.setLocation(new Location(5.0, 5.0));
+
+        // post instance on system
+        return this.client.postForObject(buildUrl("instances", domainName, UserRole.MANAGER.getEmail()),
+                addMe,
+                InstanceBoundary.class);
     }
 }
