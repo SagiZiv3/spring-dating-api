@@ -10,10 +10,4 @@ public class InstanceNotFoundException extends RuntimeException {
         this.domain = domain;
         this.id = id;
     }
-
-    public InstanceNotFoundException(Throwable throwable, String domain, String id) {
-        super(throwable);
-        this.domain = domain;
-        this.id = id;
-    }
 }

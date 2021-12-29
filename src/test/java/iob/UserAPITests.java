@@ -1,100 +1,39 @@
 package iob;
 
-import iob.boundaries.InstanceBoundary;
 import iob.boundaries.NewUserBoundary;
 import iob.boundaries.UserBoundary;
-import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.converters.UserConverter;
 import iob.boundaries.helpers.UserRoleBoundary;
-import iob.controllers.UserController;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.web.client.RestTemplate;
-
-import javax.annotation.PostConstruct;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class UserAPITests {
+public class UserAPITests extends AbstractTestClass {
     UserConverter userConverter;
-    // Enable access from everywhere using: UserAPITests.KEYS.{___}
-    public interface KEYS {
-        final String USER_EMAIL = "UserAPITests_Shahar@userApiTest.com";
-        final String USERNAME = "UserAPITests_InvokingUser";
-        final String USER_AVATAR = "UserAPITests_USER_AVATAR";
-        final String USER_EMAIL_Player = "UserAPITests_Player@userApiTest.com";
-        final String USERNAME_Player = "UserAPITests_InvokingUser_Player";
-        final String USER_AVATAR_Player = "UserAPITests_USER_AVATAR_Player";
-
-    }
 
     @Autowired
     public UserAPITests(UserConverter userConverter_whereFrom) {
+        super();
         this.userConverter = userConverter_whereFrom;
-
-    }
-
-    @Value("${spring.application.name:dummy}")
-    private String domainName;
-
-    @Autowired
-    private InstanceConverter instanceConverter;
-    private int port;
-    private NewUserBoundary userActivating;
-    private RestTemplate client; //  helper object to invoke HTTP requests
-    private String url; // used to represent the URL used to access the server
-
-    // get random port used by server
-    @LocalServerPort
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    @PostConstruct
-    public void initTestCase() {
-        this.url = "http://localhost:" + this.port + "/iob";
-        this.client = new RestTemplate();
-    }
-
-    @BeforeAll
-    public void createUserInvoking() {
-        // Adding user to server
-        userActivating = new NewUserBoundary(KEYS.USER_EMAIL, UserRoleBoundary.ADMIN, KEYS.USERNAME, KEYS.USER_AVATAR);
-        this.client.postForObject(this.url + "/users",
-                userActivating,
-                NewUserBoundary.class);
-    }
-    @Test
-    void contextLoads() {
     }
 
     @Test
-    public void testCreateUSer(){
+    public void testCreateUser() {
         // Adding user to server
-        NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
-        this.client.postForObject(this.url + "/users",
-                insertMe,
-                NewUserBoundary.class);
+        UserBoundary insertedUser = super.createUser(UserRole.PLAYER);
 
+        String url = super.buildUrl(KEYS.ROOT_NAME, "login", domainName, insertedUser.getUserId().getEmail());
+        UserBoundary returnedFromRequest = this.client.getForObject(url, UserBoundary.class);
 
-        NewUserBoundary[] returnedFromRequest = this.client.getForObject(this.url + "/admin/users/"+ "/" + domainName + "/" + KEYS.USER_EMAIL,
-                                    NewUserBoundary[].class);
-
-        // FIXME // How to Compare UserBoundary to NewUserBoundary? 15/12/2021 Maybe convert one of them to the other, or check specific fields? Consult with everyone..
-        // TODO: 15/12/2021 Test Failed: The returned objects does not contain the User's email (null instead). FIXME
-        assertThat(returnedFromRequest).contains(insertMe);
+        assertThat(returnedFromRequest).isNotNull();
+        assertThat(returnedFromRequest).isEqualTo(insertedUser);
 
         /*
         CRUD:
@@ -113,24 +52,15 @@ public class UserAPITests {
     }
 
     @Test
-    public void testGetUser(){
-        // Adding user to server
-        NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
-        this.client.postForObject(this.url + "/users",
-                insertMe,
-                NewUserBoundary.class);
+    public void testGetUser() {
 
-        // get user from server
-        UserBoundary returnedFromRequest = this.client.getForObject(this.url + "/users"+ "/login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
-                UserBoundary.class);
+        // get the admin user from server (it is created before every test)
+        String url = super.buildUrl(KEYS.ROOT_NAME, "login", domainName, UserRole.ADMIN.getEmail());
+        UserBoundary returnedFromRequest = this.client.getForObject(url, UserBoundary.class);
 
 
+        assertThat(returnedFromRequest).isNotNull();
 
-        assertThat(returnedFromRequest.getUserId().getEmail()).isEqualTo(insertMe.getEmail());
-        assertThat(returnedFromRequest.getUserId().getDomain()).isEqualTo(domainName);
-//        assertThat(returnedFromRequest).isEqualTo(insertMe);
-
-        // TODO: 03/12/2021 getUser
         /*
         CRUD:
             GET
@@ -147,56 +77,52 @@ public class UserAPITests {
     }
 
     @Test
-    public void testGetAllUsers()
-    {
+    public void testGetAllUsers() {
         ArrayList<NewUserBoundary> insertUs = new ArrayList<>();
-        insertUs.add(new NewUserBoundary("0_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_0", KEYS.USER_AVATAR_Player + "_0"));
-        insertUs.add(new NewUserBoundary("1_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_1", KEYS.USER_AVATAR_Player + "_1"));
-        insertUs.add(new NewUserBoundary("2_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_2", KEYS.USER_AVATAR_Player + "_2"));
+        insertUs.add(new NewUserBoundary("0_" + UserRole.PLAYER.getEmail(), UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_0", KEYS.USER_AVATAR_Player + "_0"));
+        insertUs.add(new NewUserBoundary("1_" + UserRole.PLAYER.getEmail(), UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_1", KEYS.USER_AVATAR_Player + "_1"));
+        insertUs.add(new NewUserBoundary("2_" + UserRole.PLAYER.getEmail(), UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_2", KEYS.USER_AVATAR_Player + "_2"));
+
         // Adding users to server
-        for (NewUserBoundary newUserBoundary : insertUs){
-            this.client.postForObject(this.url + "/users",
+        for (NewUserBoundary newUserBoundary : insertUs) {
+            this.client.postForObject(super.buildUrl(KEYS.ROOT_NAME),
                     newUserBoundary,
                     NewUserBoundary.class);
 
         }
         // Getting all users from server
-        UserBoundary[] returnedFromRequest = this.client.getForObject(this.url + "/admin/users/" + domainName + "/" + KEYS.USER_EMAIL,
-                UserBoundary[].class);
+        String url = super.buildAdminUrl(KEYS.ROOT_NAME, domainName, UserRole.ADMIN.getEmail());
+        UserBoundary[] returnedFromRequest = this.client.getForObject(url, UserBoundary[].class);
 
 
         // Convert inserted elements insertUs to UserBoundary (will enable the usage of containsAll)
-        List<UserBoundary> insertedAsUserBoundary = insertUs.stream().map(userConverter::toBoundary).collect(Collectors.toList());
+        List<UserBoundary> insertedAsUserBoundary = insertUs.stream()
+                .map(userConverter::toBoundary)
+                .collect(Collectors.toList());
 
 
         assertThat(returnedFromRequest).containsAll(insertedAsUserBoundary);
 
     }
 
-
-
     @Test
-    public void testModifyUser(){
-        // TODO: 03/12/2021 updateUser
+    public void testModifyUser() {
         // Adding user to server
-        NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
-        this.client.postForObject(this.url + "/users",
-                insertMe,
-                NewUserBoundary.class);
+        UserBoundary insertedUser = super.createUser(UserRole.PLAYER);
 
         // Send update to server
-        NewUserBoundary updatedVersion = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player + "_Updated_");
-        this.client.put(this.url + "/users/"  + domainName +  "/" + KEYS.USER_EMAIL_Player,
-                updatedVersion);
+        String url = super.buildUrl(KEYS.ROOT_NAME, domainName, insertedUser.getUserId().getEmail());
+        UserBoundary updatedVersion = new UserBoundary();
+        String updatedAvatar = "updated_avatar";
+        updatedVersion.setAvatar(updatedAvatar);
+        this.client.put(url, updatedVersion);
 
 
         // get user from server
-        UserBoundary returnedFromServer = this.client.getForObject(this.url + "/users/"+ "login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
-                UserBoundary.class);
-
-        // FIXME // How to Compare UserBoundary to NewUserBoundary? 15/12/2021 Maybe convert one of them to the other, or check specific fields? Consult with everyone..
-//        UserController uc = new UserController();
-//        assertThat(returnedFromServer).isEqualTo(userCovupdatedVersion);
+        url = super.buildUrl(KEYS.ROOT_NAME, "login", domainName, insertedUser.getUserId().getEmail());
+        UserBoundary returnedFromServer = this.client.getForObject(url, UserBoundary.class);
+        assertThat(returnedFromServer).isNotNull();
+        assertThat(returnedFromServer.getAvatar()).isEqualTo(updatedAvatar);
 
         /*
         CRUD:
@@ -216,13 +142,14 @@ public class UserAPITests {
          */
 
 
+    }
+
+    // Enable access from everywhere using: UserAPITests.KEYS.{___}
+    private interface KEYS {
+        String ROOT_NAME = "users";
+        String USERNAME_Player = "UserAPITests_InvokingUser_Player";
+        String USER_AVATAR_Player = "UserAPITests_USER_AVATAR_Player";
 
     }
 
 }
-
-
-
-
-
-

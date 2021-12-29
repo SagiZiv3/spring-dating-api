@@ -1,110 +1,63 @@
 package iob;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
-import iob.boundaries.NewUserBoundary;
 import iob.boundaries.UserBoundary;
-import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.helpers.InstanceIdWrapper;
 import iob.boundaries.helpers.InvokedByBoundary;
-import iob.boundaries.helpers.Location;
-import iob.boundaries.helpers.UserRoleBoundary;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.web.client.RestTemplate;
-
-import javax.annotation.PostConstruct;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ActivityApiTests {
-    // Enable access from everywhere using: UserAPITests.KEYS.{___}
-    public interface KEYS {
-        String USER_EMAIL = "Shahar@sagi.com";
-        String USERNAME = "InstancesAPITests_InvokingUser";
-        String USER_AVATAR = "InvokingUser";
-    }
-
-    @Value("${spring.application.name:dummy}")
-    private String domainName;
+public class ActivityApiTests extends AbstractTestClass {
+    private InstanceBoundary instanceBoundary;
+    private UserBoundary playerBoundary;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    private InstanceConverter instanceConverter;
-    private int port;
-    private UserBoundary userActivating;
-
-    private RestTemplate client; //  helper object to invoke HTTP requests
-    private String url; // used to represent the URL used to access the server
-
-    // get random port used by server
-    @LocalServerPort
-    public void setPort(int port) {
-        this.port = port;
+    public ActivityApiTests(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
-    @PostConstruct
-    public void initTestCase() {
-        this.url = "http://localhost:" + this.port + "/iob";
-        this.client = new RestTemplate();
-    }
-
-    @BeforeAll
-    public void createUserInvoking() {
-        // Adding user to server
-        NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL, UserRoleBoundary.ADMIN, KEYS.USERNAME, KEYS.USER_AVATAR);
-        this.userActivating = this.client.postForObject(this.url + "/users",
-                insertMe,
-                UserBoundary.class);
-    }
-
-
-    @Test
-    void contextLoads() {
+    @BeforeEach
+    public void createInstance() {
+        super.createUser(UserRole.MANAGER);
+        instanceBoundary = super.createInstance("invokingActivityType", "invokingActivity");
+        playerBoundary = super.createUser(UserRole.PLAYER);
     }
 
     @Test
-    public void testInsertActivity(){
-        // 0. ____ create instance invoking ____
-        Location locObj = new Location(5.0, 5.0); // creating dummy location
-        InstanceBoundary addMe = new InstanceBoundary();
-        addMe.setName("invokingActivity");
-        addMe.setType(InstancesAPITests.KEYS.INSTANCE_TYPE);
-        addMe.setLocation(locObj);
-
-        // post instance on system
-        InstanceBoundary requestsOutput = this.client.postForObject(this.url + "/instances/" + domainName + "/" + KEYS.USER_EMAIL,
-                addMe,
-                InstanceBoundary.class);
-
-
-        // 1, create activity boundary with id=null
+    public void testInsertActivity() {
+        // Create activity boundary
         ActivityBoundary activityBoundary = new ActivityBoundary();
-        activityBoundary.setInstance(new InstanceIdWrapper(requestsOutput.getInstanceId()));
-        activityBoundary.setInvokedBy(new InvokedByBoundary(userActivating.getUserId()));
-        activityBoundary.setType("SomeCoolType- ActivityApiTest- Line90");
-//        activityBoundary.getActivityId().setId(null);
+        activityBoundary.setInstance(new InstanceIdWrapper(instanceBoundary.getInstanceId()));
+        activityBoundary.setInvokedBy(new InvokedByBoundary(playerBoundary.getUserId()));
+        activityBoundary.setType("testInvokeActivity");
 
         // post activity ( Get it back with the ID)
-        activityBoundary = this.client.postForObject(url  +"/activities",
+        Object result = this.client.postForObject(super.buildUrl(KEYS.ROOT_NAME),
                 activityBoundary,
-                ActivityBoundary.class);
+                Object.class);
 
+        assertThat(result).isNotNull();
 
         // Export all activities in domain
-        ActivityBoundary[] returnedFromRequest = this.client.getForObject(this.url + "/admin/activities/" + domainName + "/" + KEYS.USER_EMAIL,
+        ActivityBoundary[] returnedFromRequest = this.client.getForObject(super.buildAdminUrl(KEYS.ROOT_NAME, domainName, UserRole.ADMIN.getEmail()),
                 ActivityBoundary[].class);
 
-
-        // assert addMe is within the activities.
-        assertThat(returnedFromRequest).contains(activityBoundary);
+        assertThat(returnedFromRequest).isNotNull();
+        assertThat(returnedFromRequest.length).isEqualTo(1);
         /*
         CRUD:
             POST
@@ -139,6 +92,31 @@ public class ActivityApiTests {
             }
             }
          */
+    }
 
+    @Test
+    public void testInsertActivityFailsBecauseUnknownType() {
+        // Create activity boundary
+        ActivityBoundary activityBoundary = new ActivityBoundary();
+        activityBoundary.setInstance(new InstanceIdWrapper(instanceBoundary.getInstanceId()));
+        activityBoundary.setInvokedBy(new InvokedByBoundary(playerBoundary.getUserId()));
+        activityBoundary.setType("sOmE rAnDoM tYpE");
+
+        // post activity ( Get it back with the ID)
+        try {
+            this.client.postForEntity(super.buildUrl(KEYS.ROOT_NAME),
+                    activityBoundary,
+                    Object.class);
+
+            fail("Error was not thrown for unknown type");
+        } catch (HttpStatusCodeException e) {
+            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+
+    // Enable access from everywhere using: UserAPITests.KEYS.{___}
+    private interface KEYS {
+        String ROOT_NAME = "activities";
     }
 }
