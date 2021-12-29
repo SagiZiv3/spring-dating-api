@@ -1,12 +1,9 @@
 package iob;
 
-import iob.boundaries.InstanceBoundary;
 import iob.boundaries.NewUserBoundary;
 import iob.boundaries.UserBoundary;
-import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.converters.UserConverter;
 import iob.boundaries.helpers.UserRoleBoundary;
-import iob.controllers.UserController;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -17,27 +14,24 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserAPITests {
     UserConverter userConverter;
-    // Enable access from everywhere using: UserAPITests.KEYS.{___}
-    public interface KEYS {
-        final String USER_EMAIL = "UserAPITests_Shahar@userApiTest.com";
-        final String USERNAME = "UserAPITests_InvokingUser";
-        final String USER_AVATAR = "UserAPITests_USER_AVATAR";
-        final String USER_EMAIL_Player = "UserAPITests_Player@userApiTest.com";
-        final String USERNAME_Player = "UserAPITests_InvokingUser_Player";
-        final String USER_AVATAR_Player = "UserAPITests_USER_AVATAR_Player";
 
+    @BeforeAll
+    public void createUserInvoking() {
+        // Adding user to server
+        NewUserBoundary userActivating = new NewUserBoundary(KEYS.USER_EMAIL, UserRoleBoundary.ADMIN, KEYS.USERNAME, KEYS.USER_AVATAR);
+        this.client.postForObject(this.url + "/users",
+                userActivating,
+                NewUserBoundary.class);
     }
 
     @Autowired
@@ -46,13 +40,9 @@ public class UserAPITests {
 
     }
 
-    @Value("${spring.application.name:dummy}")
     private String domainName;
 
-    @Autowired
-    private InstanceConverter instanceConverter;
     private int port;
-    private NewUserBoundary userActivating;
     private RestTemplate client; //  helper object to invoke HTTP requests
     private String url; // used to represent the URL used to access the server
 
@@ -68,20 +58,8 @@ public class UserAPITests {
         this.client = new RestTemplate();
     }
 
-    @BeforeAll
-    public void createUserInvoking() {
-        // Adding user to server
-        userActivating = new NewUserBoundary(KEYS.USER_EMAIL, UserRoleBoundary.ADMIN, KEYS.USERNAME, KEYS.USER_AVATAR);
-        this.client.postForObject(this.url + "/users",
-                userActivating,
-                NewUserBoundary.class);
-    }
     @Test
-    void contextLoads() {
-    }
-
-    @Test
-    public void testCreateUSer(){
+    public void testCreateUSer() {
         // Adding user to server
         NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
         this.client.postForObject(this.url + "/users",
@@ -89,8 +67,8 @@ public class UserAPITests {
                 NewUserBoundary.class);
 
 
-        NewUserBoundary[] returnedFromRequest = this.client.getForObject(this.url + "/admin/users/"+ "/" + domainName + "/" + KEYS.USER_EMAIL,
-                                    NewUserBoundary[].class);
+        NewUserBoundary[] returnedFromRequest = this.client.getForObject(this.url + "/admin/users/" + "/" + domainName + "/" + KEYS.USER_EMAIL,
+                NewUserBoundary[].class);
 
         // FIXME // How to Compare UserBoundary to NewUserBoundary? 15/12/2021 Maybe convert one of them to the other, or check specific fields? Consult with everyone..
         // TODO: 15/12/2021 Test Failed: The returned objects does not contain the User's email (null instead). FIXME
@@ -113,7 +91,11 @@ public class UserAPITests {
     }
 
     @Test
-    public void testGetUser(){
+    void contextLoads() {
+    }
+
+    @Test
+    public void testGetUser() {
         // Adding user to server
         NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
         this.client.postForObject(this.url + "/users",
@@ -121,9 +103,8 @@ public class UserAPITests {
                 NewUserBoundary.class);
 
         // get user from server
-        UserBoundary returnedFromRequest = this.client.getForObject(this.url + "/users"+ "/login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
+        UserBoundary returnedFromRequest = this.client.getForObject(this.url + "/users" + "/login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
                 UserBoundary.class);
-
 
 
         assertThat(returnedFromRequest.getUserId().getEmail()).isEqualTo(insertMe.getEmail());
@@ -147,14 +128,13 @@ public class UserAPITests {
     }
 
     @Test
-    public void testGetAllUsers()
-    {
+    public void testGetAllUsers() {
         ArrayList<NewUserBoundary> insertUs = new ArrayList<>();
-        insertUs.add(new NewUserBoundary("0_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_0", KEYS.USER_AVATAR_Player + "_0"));
-        insertUs.add(new NewUserBoundary("1_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_1", KEYS.USER_AVATAR_Player + "_1"));
-        insertUs.add(new NewUserBoundary("2_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player+ "_2", KEYS.USER_AVATAR_Player + "_2"));
+        insertUs.add(new NewUserBoundary("0_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_0", KEYS.USER_AVATAR_Player + "_0"));
+        insertUs.add(new NewUserBoundary("1_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_1", KEYS.USER_AVATAR_Player + "_1"));
+        insertUs.add(new NewUserBoundary("2_" + KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_2", KEYS.USER_AVATAR_Player + "_2"));
         // Adding users to server
-        for (NewUserBoundary newUserBoundary : insertUs){
+        for (NewUserBoundary newUserBoundary : insertUs) {
             this.client.postForObject(this.url + "/users",
                     newUserBoundary,
                     NewUserBoundary.class);
@@ -173,10 +153,8 @@ public class UserAPITests {
 
     }
 
-
-
     @Test
-    public void testModifyUser(){
+    public void testModifyUser() {
         // TODO: 03/12/2021 updateUser
         // Adding user to server
         NewUserBoundary insertMe = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player);
@@ -186,12 +164,12 @@ public class UserAPITests {
 
         // Send update to server
         NewUserBoundary updatedVersion = new NewUserBoundary(KEYS.USER_EMAIL_Player, UserRoleBoundary.PLAYER, KEYS.USERNAME_Player, KEYS.USER_AVATAR_Player + "_Updated_");
-        this.client.put(this.url + "/users/"  + domainName +  "/" + KEYS.USER_EMAIL_Player,
+        this.client.put(this.url + "/users/" + domainName + "/" + KEYS.USER_EMAIL_Player,
                 updatedVersion);
 
 
         // get user from server
-        UserBoundary returnedFromServer = this.client.getForObject(this.url + "/users/"+ "login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
+        UserBoundary returnedFromServer = this.client.getForObject(this.url + "/users/" + "login/" + domainName + "/" + KEYS.USER_EMAIL_Player,
                 UserBoundary.class);
 
         // FIXME // How to Compare UserBoundary to NewUserBoundary? 15/12/2021 Maybe convert one of them to the other, or check specific fields? Consult with everyone..
@@ -216,13 +194,22 @@ public class UserAPITests {
          */
 
 
+    }
+
+    @Value("${spring.application.name:dummy}")
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
+    }
+
+    // Enable access from everywhere using: UserAPITests.KEYS.{___}
+    public interface KEYS {
+        String USER_EMAIL = "UserAPITests_Shahar@userApiTest.com";
+        String USERNAME = "UserAPITests_InvokingUser";
+        String USER_AVATAR = "UserAPITests_USER_AVATAR";
+        String USER_EMAIL_Player = "UserAPITests_Player@userApiTest.com";
+        String USERNAME_Player = "UserAPITests_InvokingUser_Player";
+        String USER_AVATAR_Player = "UserAPITests_USER_AVATAR_Player";
 
     }
 
 }
-
-
-
-
-
-

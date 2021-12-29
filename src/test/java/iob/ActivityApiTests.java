@@ -4,7 +4,6 @@ import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.NewUserBoundary;
 import iob.boundaries.UserBoundary;
-import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.helpers.InstanceIdWrapper;
 import iob.boundaries.helpers.InvokedByBoundary;
 import iob.boundaries.helpers.Location;
@@ -12,7 +11,6 @@ import iob.boundaries.helpers.UserRoleBoundary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -33,11 +31,8 @@ public class ActivityApiTests {
         String USER_AVATAR = "InvokingUser";
     }
 
-    @Value("${spring.application.name:dummy}")
     private String domainName;
 
-    @Autowired
-    private InstanceConverter instanceConverter;
     private int port;
     private UserBoundary userActivating;
 
@@ -140,5 +135,10 @@ public class ActivityApiTests {
             }
          */
 
+    }
+
+    @Value("${spring.application.name:dummy}")
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
     }
 }

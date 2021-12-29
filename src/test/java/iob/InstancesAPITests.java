@@ -27,13 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class InstancesAPITests {
 
-    @Value("${spring.application.name:dummy}")
     private String domainName;
 
-    @Autowired
-    private InstanceConverter instanceConverter;
+    private final InstanceConverter instanceConverter;
     private int port;
-    private NewUserBoundary userActivating;
     private RestTemplate client; //  helper object to invoke HTTP requests
     private String url; // used to represent the URL used to access the server
 
@@ -44,6 +41,11 @@ class InstancesAPITests {
         String USER_AVATAR = "InvokingUser";
         String INSTANCE_TYPE = "dummyInstanceType";
         String INSTANCE_NAME = "dummyInstanceName";
+    }
+
+    @Autowired
+    public InstancesAPITests(InstanceConverter instanceConverter) {
+        this.instanceConverter = instanceConverter;
     }
 
     @Test
@@ -96,7 +98,7 @@ class InstancesAPITests {
     @BeforeAll
     public void createUserInvoking() {
         // Adding user to server createUserInvoking
-        userActivating = new NewUserBoundary(KEYS.USER_EMAIL, UserRoleBoundary.ADMIN, KEYS.USERNAME, KEYS.USER_AVATAR);
+        NewUserBoundary userActivating = new NewUserBoundary(KEYS.USER_EMAIL, UserRoleBoundary.ADMIN, KEYS.USERNAME, KEYS.USER_AVATAR);
         this.client.postForObject(this.url + "/users",
                 userActivating,
                 NewUserBoundary.class);
@@ -332,8 +334,8 @@ class InstancesAPITests {
 
     }
 
+    @Value("${spring.application.name:dummy}")
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
+    }
 }
-
-
-
-
