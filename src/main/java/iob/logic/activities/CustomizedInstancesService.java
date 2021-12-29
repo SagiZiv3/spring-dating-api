@@ -6,6 +6,7 @@ import iob.logic.instancesearching.By;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CustomizedInstancesService {
     InstanceBoundary store(InstanceBoundary instanceBoundary);
@@ -16,5 +17,5 @@ public interface CustomizedInstancesService {
 
     List<InstanceBoundary> findAllEntities(By by, Pageable page);
 
-    InstanceBoundary findEntity(By by);
+    Optional<InstanceBoundary> findEntity(By by);
 }

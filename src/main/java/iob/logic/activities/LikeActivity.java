@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.UserIdBoundary;
+import iob.logic.exceptions.activity.BrokenUserInstanceException;
 import iob.logic.exceptions.activity.InvalidLikeActivityException;
+import iob.logic.exceptions.activity.MissingUserInstanceException;
 import iob.logic.instancesearching.By;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -68,8 +70,12 @@ public class LikeActivity implements InvokableActivity {
         log.info("Searching for users' instances");
         By byInvokingUser = By.type(InstanceOptions.Types.USER).and(By.id(activityBoundary.getInstance().getInstanceId()));
         By byLikedUser = By.type(InstanceOptions.Types.USER).and(By.userId(likedUserId));
-        InstanceBoundary invokingUserInstance = instancesService.findEntity(byInvokingUser);
-        InstanceBoundary likedUserInstance = instancesService.findEntity(byLikedUser);
+        InstanceBoundary invokingUserInstance = instancesService.findEntity(byInvokingUser)
+                .orElseThrow(() -> new MissingUserInstanceException(invokingUserId.getEmail(), invokingUserId.getDomain()));
+
+        InstanceBoundary likedUserInstance = instancesService.findEntity(byLikedUser)
+                .orElseThrow(() -> new MissingUserInstanceException(likedUserId.getEmail(), likedUserId.getDomain()));
+
         log.debug("Invoking user: {}", invokingUserInstance);
         log.debug("Liked user: {}", likedUserInstance);
 
@@ -96,6 +102,10 @@ public class LikeActivity implements InvokableActivity {
     }
 
     private List<UserIdBoundary> getLikesForUser(String likesType, InstanceBoundary userInstance) {
+        if (!userInstance.getInstanceAttributes().containsKey(likesType)) {
+            UserIdBoundary userId = userInstance.getCreatedBy().getUserId();
+            throw new BrokenUserInstanceException(userId.getEmail(), userId.getDomain(), likesType);
+        }
         UserIdBoundary[] asArray = objectMapper.convertValue(
                 userInstance.getInstanceAttributes().get(likesType),
                 UserIdBoundary[].class

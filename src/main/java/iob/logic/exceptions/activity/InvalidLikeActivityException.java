@@ -3,7 +3,7 @@ package iob.logic.exceptions.activity;
 import lombok.Getter;
 
 public class InvalidLikeActivityException extends RuntimeException {
-    private static final long serialVersionUID = 808145515962768929L;
+    private static final long serialVersionUID = 808145515962768934L;
     @Getter
     private final String userEmail, userDomain;
 

@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -219,10 +220,9 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     }
 
     @Override
-    public InstanceBoundary findEntity(By by) {
-        InstanceEntity instanceEntity = instancesDao.findOne(by.getQuery())
-                .orElseThrow(InstanceNotFoundException::new);
-        return instanceConverter.toBoundary(instanceEntity);
+    public Optional<InstanceBoundary> findEntity(By by) {
+        Optional<InstanceEntity> instanceEntity = instancesDao.findOne(by.getQuery());
+        return instanceEntity.map(instanceConverter::toBoundary);
     }
 
     @Override

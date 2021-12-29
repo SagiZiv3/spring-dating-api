@@ -1,6 +1,8 @@
 package iob.logic.activities;
 
 import iob.boundaries.ActivityBoundary;
+import iob.boundaries.helpers.UserIdBoundary;
+import iob.logic.exceptions.activity.MissingUserInstanceException;
 import iob.logic.instancesearching.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,9 @@ public class GetUserInstanceActivity implements InvokableActivity {
          *   }
          * }
          * */
-        By by = By.userId(activityBoundary.getInvokedBy().getUserId()).and(By.type(InstanceOptions.Types.USER));
-        return instancesService.findEntity(by);
+        UserIdBoundary userId = activityBoundary.getInvokedBy().getUserId();
+        By by = By.userId(userId).and(By.type(InstanceOptions.Types.USER));
+        return instancesService.findEntity(by)
+                .orElseThrow(() -> new MissingUserInstanceException(userId.getEmail(), userId.getDomain()));
     }
 }

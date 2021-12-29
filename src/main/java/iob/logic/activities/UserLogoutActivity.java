@@ -2,6 +2,7 @@ package iob.logic.activities;
 
 import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
+import iob.logic.exceptions.activity.MissingLoginInstanceException;
 import iob.logic.instancesearching.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,8 @@ public class UserLogoutActivity implements InvokableActivity {
         By by = By.childOf(activityBoundary.getInstance().getInstanceId())
                 .and(By.type(InstanceOptions.Types.USER_LOGIN))
                 .and(By.activeIn(Collections.singleton(true)));
-        InstanceBoundary recentLogin = instancesService.findEntity(by);
+        InstanceBoundary recentLogin = instancesService.findEntity(by)
+                .orElseThrow(MissingLoginInstanceException::new); // Should never happen
         recentLogin.setActive(false);
         return instancesService.update(recentLogin);
     }

@@ -5,7 +5,7 @@ import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.Location;
-import iob.logic.exceptions.instance.InstanceNotFoundException;
+import iob.logic.exceptions.activity.MultipleLoginsException;
 import iob.logic.instancesearching.By;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,10 +53,10 @@ public class UserLoginActivity implements InvokableActivity {
         By by = By.childOf(activityBoundary.getInstance().getInstanceId())
                 .and(By.type(InstanceOptions.Types.USER_LOGIN))
                 .and(By.activeIn(Collections.singleton(true)));
-        try {
-            instancesService.findEntity(by);
-        } catch (InstanceNotFoundException ignored) {
 
+        // If there is already an active login instance, throw an exception (we only support one login).
+        if (instancesService.findEntity(by).isPresent()) {
+            throw new MultipleLoginsException();
         }
         // Extract location from activity
         // The location is the user's current location.
