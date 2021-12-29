@@ -31,13 +31,19 @@ public class UserSignupActivity implements InvokableActivity {
          * Activity expected structure (ignoring unnecessary attributes):
          * {
          *   "invokedBy": {
-         *       "userId": {
+         *       "userId": { // The user you want to sign in to the system
          *           "email": "some@email.com"
          *           "domain": "some_domain"
          *       }
          *   },
+         *  "instance": {
+         *       "instanceId": { // This would always be the dummy instance
+         *           "id": "1"
+         *           "domain": "2022a.Tomer.Dwek"
+         *       }
+         *   },
          *   "activityAttributes": {
-         *       "location": { // User's home address
+         *       "location": { // User's home address (optional input)
          *           "lat": ~SOME DOUBLE~,
          *           "lng": ~SOME DOUBLE~
          *       }

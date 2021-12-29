@@ -32,18 +32,18 @@ public class UserLoginActivity implements InvokableActivity {
          * {
          *   "invokedBy": {
          *       "userId": {
-         *           "email": "some@email.com"
-         *           "domain": "some_domain"
+         *           "email": "~USER'S EMAIL~"
+         *           "domain": "~USER'S DOMAIN~"
          *       }
          *   },
          *  "instance": {
-         *       "instanceId": {
+         *       "instanceId": { // This would be the instance representing the invoking user
          *           "id": "~SOME_ID~"
          *           "domain": "some_domain"
          *       }
          *   },
          *   "activityAttributes": {
-         *       "location": {
+         *       "location": { // User's current location
          *           "lat": ~SOME DOUBLE~,
          *           "lng": ~SOME DOUBLE~
          *       }

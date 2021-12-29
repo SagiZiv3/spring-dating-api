@@ -35,18 +35,18 @@ public class LikeActivity implements InvokableActivity {
          * {
          *   "invokedBy": {
          *       "userId": {
-         *           "email": "some@email.com"
-         *           "domain": "some_domain"
+         *           "email": "~USER'S EMAIL~"
+         *           "domain": "~USER'S DOMAIN~"
          *       }
          *   },
          *  "instance": {
-         *       "instanceId": {
+         *       "instanceId": { // This would be the instance representing the invoking user
          *           "id": "~SOME_ID~"
          *           "domain": "some_domain"
          *       }
          *   },
          *   "activityAttributes": {
-         *       "otherUser": {
+         *       "otherUser": { // The information about the liked user
          *           "email": ~LIKED USER EMAIL~,
          *           "domain": ~LIKED USER DOMAIN~
          *       }
@@ -55,7 +55,7 @@ public class LikeActivity implements InvokableActivity {
          * */
         // We have the id of the user that created the activity, its instance id
         // and the id of the liked user.
-        // First, we need to find the invoking user and check if he already liked the other user.
+        // First, we need to find the users in the database.
         UserIdBoundary invokingUserId = activityBoundary.getInvokedBy().getUserId();
         UserIdBoundary likedUserId = objectMapper.convertValue(
                 activityBoundary.getActivityAttributes().get(InstanceOptions.Attributes.OTHER_USER),

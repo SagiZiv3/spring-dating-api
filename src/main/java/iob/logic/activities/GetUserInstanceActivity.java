@@ -28,7 +28,7 @@ public class GetUserInstanceActivity implements InvokableActivity {
          *  "instance": {
          *       "instanceId": { // This would always be the dummy instance
          *           "id": "1"
-         *           "domain": "~APP'S DOMAIN~"
+         *           "domain": "2022a.Tomer.Dwek"
          *       }
          *   }
          * }
