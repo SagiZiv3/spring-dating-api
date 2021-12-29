@@ -11,9 +11,11 @@ import iob.logic.annotations.RoleRestricted;
 import iob.logic.annotations.UserRoleParameter;
 import iob.logic.db.dao.ActivitiesDao;
 import iob.logic.exceptions.InvalidInputException;
+import iob.logic.exceptions.activity.UnknownActivityTypeException;
 import iob.logic.pagedservices.PagedActivitiesService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -77,8 +79,12 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
                 activity.getInvokedBy().getUserId().getEmail(), UserRoleParameter.PLAYER);
         saveEntity(activity);
 
-        return applicationContext.getBean(activity.getType(), InvokableActivity.class)
-                .invoke(activity);
+        try {
+            return applicationContext.getBean(activity.getType(), InvokableActivity.class)
+                    .invoke(activity);
+        } catch (BeansException e) {
+            throw new UnknownActivityTypeException(activity.getType());
+        }
     }
 
     private void saveEntity(ActivityBoundary activity) {

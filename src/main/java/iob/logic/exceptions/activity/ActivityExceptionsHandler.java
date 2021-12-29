@@ -58,4 +58,13 @@ public class ActivityExceptionsHandler {
         );
         return ResponseEntity.status(response.getHttpStatus()).body(response);
     }
+
+    @ExceptionHandler(UnknownActivityTypeException.class)
+    private ResponseEntity<ExceptionResponse> handleUnknownActivityTypeException(HttpServletRequest request, UnknownActivityTypeException e) {
+        ExceptionResponse response = new ExceptionResponse(
+                String.format("Unknown activity type: '%s'.", e.getType()),
+                request.getRequestURI(), HttpStatus.UNPROCESSABLE_ENTITY
+        );
+        return ResponseEntity.status(response.getHttpStatus()).body(response);
+    }
 }
