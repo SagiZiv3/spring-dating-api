@@ -2,15 +2,15 @@ package iob.boundaries;
 
 import iob.boundaries.helpers.UserIdBoundary;
 import iob.boundaries.helpers.UserRoleBoundary;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Objects;
+
 @Getter
 @Setter
-@EqualsAndHashCode
 @NoArgsConstructor
 @ToString
 public class UserBoundary {
@@ -27,4 +27,17 @@ public class UserBoundary {
     private String gender; // Male / Female / All / None
     private String attractedTo; // Straight / Bi / Homo / None
     private String relationshipType; // Monogamous / Polygamous / Hookups / None
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserBoundary that = (UserBoundary) o;
+        return userId.equals(that.userId);
+    }
 }
