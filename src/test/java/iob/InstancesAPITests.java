@@ -1,19 +1,22 @@
 package iob;
 
 import iob.boundaries.InstanceBoundary;
-import iob.boundaries.UserBoundary;
 import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.boundaries.helpers.Location;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class InstancesAPITests extends AbstractTestClass {
 
     private final InstanceConverter instanceConverter;
-    private UserBoundary managerUser;
 
     @Autowired
     public InstancesAPITests(InstanceConverter instanceConverter) {
@@ -32,30 +34,28 @@ class InstancesAPITests extends AbstractTestClass {
 
     @BeforeEach
     public void createManagerUser() {
-        managerUser = super.createUser(UserRole.MANAGER);
+        super.createUser(UserRole.MANAGER);
     }
 
-    @Test
-    public void testGetAllInstances() {
+    @ParameterizedTest
+    @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
+    public void testGetAllInstances(int numInstances, int page, int size, int expectedLength) {
         // GIVEN
         // we have instances in the program
-        ArrayList<InstanceBoundary> insertedInstances = new ArrayList<>();
-        insertedInstances.add(super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_0"));
-        insertedInstances.add(super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_1"));
-        insertedInstances.add(super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_2"));
+        List<InstanceBoundary> insertedInstances = IntStream.range(0, numInstances)
+                .mapToObj(i -> super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_" + i))
+                .collect(Collectors.toList());
 
         // Get all instances
         String url = super.buildUrl(KEYS.ROOT_NAME, domainName, UserRole.MANAGER.getEmail());
-        InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "?page=1&size=2",
+        InstanceBoundary[] returnedFromRequest = this.client.getForObject(String.format("%s?page=%d&size=%d", url, page, size),
                 InstanceBoundary[].class);
 
         assertThat(returnedFromRequest).isNotNull();
         // We should get only one element because the database is empty before this test.
-        assertThat(returnedFromRequest.length).isEqualTo(1);
+        assertThat(returnedFromRequest.length).isEqualTo(expectedLength);
         // And that one element must be one of the values we inserted.
-        assertThat(insertedInstances).contains(returnedFromRequest[0]);
-
-
+        assertThat(insertedInstances).containsAll(Arrays.asList(returnedFromRequest));
     }
 
     @Test
@@ -100,6 +100,7 @@ class InstancesAPITests extends AbstractTestClass {
         InstanceBoundary fetchedFromDB = this.client.getForObject(super.buildUrl(KEYS.ROOT_NAME, domainName, UserRole.MANAGER.getEmail(), id.getDomain(), id.getId()),
                 InstanceBoundary.class);
 
+        assertThat(fetchedFromDB).isNotNull();
         assertEquals(fetchedFromDB.getLocation(), locObj);
         assertEquals(fetchedFromDB.getType(), "MashuAher");
     }
@@ -119,7 +120,7 @@ class InstancesAPITests extends AbstractTestClass {
         // Get all instances
         InstanceBoundary[] returnedFromRequest = this.client.getForObject(super.buildUrl(KEYS.ROOT_NAME, domainName, UserRole.MANAGER.getEmail()),
                 InstanceBoundary[].class);
-        // check that we dont have any users inside
+        // check that we don't have any users inside
         assertThat(returnedFromRequest).isEmpty();
 
     }
@@ -166,13 +167,15 @@ class InstancesAPITests extends AbstractTestClass {
     }
 
 
-    @Test
-    public void testGetAllParents() {
+    @ParameterizedTest
+    @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
+    public void testGetAllParents(int numParents, int page, int size, int expectedLength) {
         // GIVEN we have an instance with parents
-        List<InstanceBoundary> parents = new ArrayList<>();
-        parents.add(super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_0"));
-        parents.add(super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_1"));
-        InstanceBoundary child = super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_2");
+        List<InstanceBoundary> parents = IntStream.range(0, numParents)
+                .mapToObj(i -> super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_" + i))
+                .collect(Collectors.toList());
+
+        InstanceBoundary child = super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_child");
 
         // Bind the parents to the child
         parents.forEach(parent -> {
@@ -180,14 +183,14 @@ class InstancesAPITests extends AbstractTestClass {
             this.client.put(url, child.getInstanceId(), InstanceIdBoundary.class);
         });
 
-        // get obj0's children list,
+        // get child's parents list,
         String url = super.buildUrl(KEYS.ROOT_NAME, domainName, UserRole.MANAGER.getEmail(), domainName, child.getInstanceId().getId(), "parents");
-        InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "?page=1&size=1",
+        InstanceBoundary[] returnedFromRequest = this.client.getForObject(String.format("%s?page=%d&size=%d", url, page, size),
                 InstanceBoundary[].class);
 
         assertThat(returnedFromRequest).isNotNull();
-        assertThat(returnedFromRequest.length).isEqualTo(1);
-        assertThat(parents).contains(returnedFromRequest[0]);
+        assertThat(returnedFromRequest.length).isEqualTo(expectedLength);
+        assertThat(parents).containsAll(Arrays.asList(returnedFromRequest));
 
 
                 /*____________________________________________________________
@@ -206,13 +209,14 @@ class InstancesAPITests extends AbstractTestClass {
 
     }
 
-    @Test
-    public void testGetAllChildren() {
+    @ParameterizedTest
+    @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
+    public void testGetAllChildren(int numParents, int page, int size, int expectedLength) {
         // GIVEN we have an instance with parents
-        ArrayList<InstanceBoundary> children = new ArrayList<>();
-        InstanceBoundary parent = super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_0");
-        children.add(super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_1"));
-        children.add(super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_2"));
+        List<InstanceBoundary> children = IntStream.range(0, numParents)
+                .mapToObj(i -> super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_" + i))
+                .collect(Collectors.toList());
+        InstanceBoundary parent = super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_parent");
 
         // Bind the children to the parent
         children.forEach(child -> {
@@ -222,12 +226,12 @@ class InstancesAPITests extends AbstractTestClass {
 
         // get obj0's children list,
         String url = super.buildUrl(KEYS.ROOT_NAME, domainName, UserRole.MANAGER.getEmail(), domainName, parent.getInstanceId().getId(), "children");
-        InstanceBoundary[] returnedFromRequest = this.client.getForObject(url + "?page=1&size=1",
+        InstanceBoundary[] returnedFromRequest = this.client.getForObject(String.format("%s?page=%d&size=%d", url, page, size),
                 InstanceBoundary[].class);
 
         assertThat(returnedFromRequest).isNotNull();
-        assertThat(returnedFromRequest.length).isEqualTo(1);
-        assertThat(children).contains(returnedFromRequest[0]);
+        assertThat(returnedFromRequest.length).isEqualTo(expectedLength);
+        assertThat(children).containsAll(Arrays.asList(returnedFromRequest));
 
 
           /* ____________________________________________________________
@@ -249,7 +253,6 @@ class InstancesAPITests extends AbstractTestClass {
     // Enable access from everywhere using: InstanceAPITests.KEYS.{___}
     private interface KEYS {
         String ROOT_NAME = "instances";
-        String USER_AVATAR = "InvokingUser";
         String INSTANCE_TYPE = "dummyInstanceType";
         String INSTANCE_NAME = "dummyInstanceName";
     }
