@@ -19,15 +19,6 @@ public class UserBoundary {
     private String username;
     private String avatar;
 
-    private Integer heightInCm;
-    private String languages;
-    private String lookingFor; // Maybe change to enum, options: Long/Short term, One time
-    private String interestedIn; // Male / Female / Both / None
-    private String about;
-    private String gender; // Male / Female / All / None
-    private String attractedTo; // Straight / Bi / Homo / None
-    private String relationshipType; // Monogamous / Polygamous / Hookups / None
-
     @Override
     public int hashCode() {
         return Objects.hash(userId);

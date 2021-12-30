@@ -110,33 +110,6 @@ public class UsersServiceJpa implements PagedUsersService {
             entity.setAvatar(update.getAvatar());
         }
 
-        // NEW STUFF - START
-        if (update.getHeightInCm() != null) {
-            entity.setHeightInCm(update.getHeightInCm());
-        }
-        if (update.getAbout() != null) {
-            entity.setAbout(update.getAbout());
-        }
-        if (update.getAttractedTo() != null) {
-            entity.setAttractedTo(update.getAttractedTo());
-        }
-        if (update.getLanguages() != null) {
-            entity.setLanguages(update.getLanguages());
-        }
-        if (update.getInterestedIn() != null) {
-            entity.setInterestedIn(update.getInterestedIn());
-        }
-        if (update.getGender() != null) {
-            entity.setGender(update.getGender());
-        }
-        if (update.getRelationshipType() != null) {
-            entity.setRelationshipType(update.getRelationshipType());
-        }
-        if (update.getLookingFor() != null) {
-            entity.setLookingFor(update.getLookingFor());
-        }
-        // NEW STUFF - END
-
         entity = usersDao.save(entity);
         log.info("Modified user was saved in DB: {}", entity);
         return userConverter.toBoundary(entity);
