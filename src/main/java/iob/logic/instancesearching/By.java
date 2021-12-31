@@ -88,6 +88,8 @@ public abstract class By {
     public abstract String toString();
 
     public String getHumanReadableValue() {
+        if (stringBuilder == null)
+            return toString();
         return stringBuilder.toString();
     }
 
