@@ -6,19 +6,21 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 
-public class ByChild extends By {
+public class ByRelatedInstances extends By {
     private final String domain, id;
+    private final String relatedInstancesName;
 
-    ByChild(String domain, String id) {
+    public ByRelatedInstances(String domain, String id, String relatedInstancesName) {
         this.domain = domain;
         this.id = id;
+        this.relatedInstancesName = relatedInstancesName;
     }
 
     @Override
     protected Specification<InstanceEntity> getSpecification() {
         return (root, criteriaQuery, criteriaBuilder) -> {
-            // Get all the child instances
-            Join<Object, Object> childInstances = root.join("childInstances");
+            // Get all the related instances
+            Join<Object, Object> childInstances = root.join(relatedInstancesName);
             Predicate domainPredicate = criteriaBuilder.equal(
                     childInstances.get("domain"),
                     domain

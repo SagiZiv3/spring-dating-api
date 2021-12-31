@@ -1,5 +1,6 @@
 package iob.data.converters;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,17 +10,16 @@ import java.util.Map;
 
 @Converter
 public class MapToStringConverter implements AttributeConverter<Map<String, Object>, String> {
-    private final ObjectMapper jackson;
+    private final ObjectMapper objectMapper;
 
     public MapToStringConverter() {
-        this.jackson = new ObjectMapper();
+        this.objectMapper = new ObjectMapper();
     }
 
     @Override
     public String convertToDatabaseColumn(Map<String, Object> jsonFromEntity) {
         try {
-            return this.jackson
-                    .writeValueAsString(jsonFromEntity);
+            return this.objectMapper.writeValueAsString(jsonFromEntity);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -28,9 +28,9 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Obje
     @Override
     public Map<String, Object> convertToEntityAttribute(String stringFromDb) {
         try {
-            return this.jackson.readValue(stringFromDb, new TypeReference<Map<String, Object>>() {
+            return this.objectMapper.readValue(stringFromDb, new TypeReference<Map<String, Object>>() {
             });
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }

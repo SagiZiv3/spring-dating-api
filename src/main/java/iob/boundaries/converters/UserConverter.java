@@ -15,25 +15,6 @@ import org.springframework.stereotype.Component;
 public class UserConverter {
     private String applicationDomainName;
 
-    public UserBoundary toBoundary(@NonNull UserEntity entity) {
-        UserBoundary boundary = new UserBoundary();
-        boundary.setUserId(toUserIdBoundary(entity.getDomain(), entity.getEmail()));
-        boundary.setUsername(entity.getUsername());
-        boundary.setAvatar(entity.getAvatar());
-        boundary.setRole(toUserRoleBoundary(entity.getRole()));
-
-        return boundary;
-    }
-
-    public UserIdBoundary toUserIdBoundary(String domain, String email) {
-        return new UserIdBoundary(domain, email);
-    }
-
-    private UserRoleBoundary toUserRoleBoundary(UserRole userRole) {
-        if (userRole == null) return null;
-        return UserRoleBoundary.values()[userRole.ordinal()];
-    }
-
     public UserBoundary toBoundary(NewUserBoundary newUser) {
         UserBoundary boundary = new UserBoundary();
         // Create the user with the app's domain
@@ -41,6 +22,16 @@ public class UserConverter {
         boundary.setUsername(newUser.getUsername());
         boundary.setRole(newUser.getRole());
         boundary.setAvatar(newUser.getAvatar());
+        return boundary;
+    }
+
+    public UserBoundary toBoundary(@NonNull UserEntity entity) {
+        UserBoundary boundary = new UserBoundary();
+        boundary.setUserId(toUserIdBoundary(entity.getDomain(), entity.getEmail()));
+        boundary.setUsername(entity.getUsername());
+        boundary.setAvatar(entity.getAvatar());
+        boundary.setRole(toUserRoleBoundary(entity.getRole()));
+
         return boundary;
     }
 
@@ -58,9 +49,18 @@ public class UserConverter {
         return entity;
     }
 
+    public UserIdBoundary toUserIdBoundary(String domain, String email) {
+        return new UserIdBoundary(domain, email);
+    }
+
     private UserRole toUserRoleEntity(UserRoleBoundary userRole) {
         if (userRole == null) return null;
         return UserRole.values()[userRole.ordinal()];
+    }
+
+    private UserRoleBoundary toUserRoleBoundary(UserRole userRole) {
+        if (userRole == null) return null;
+        return UserRoleBoundary.values()[userRole.ordinal()];
     }
 
     public UserPrimaryKey toUserPrimaryKey(UserIdBoundary userId) {

@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -49,6 +48,8 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     }
 
     //<editor-fold desc="Get methods">
+    //<editor-fold desc="SearchableInstancesService">
+
     @Override
     @Transactional(readOnly = true)
     @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
@@ -56,29 +57,36 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
                                                   @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                                                   int page, int size) {
         log.info("Getting {} instances from page {}", size, page);
-        Pageable pageable = getDefaultPageable(page, size);
-
-        Page<InstanceEntity> resultPage = this.instancesDao.findAllByActiveIn(
-                permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail),
-                pageable);
-
-        log.info("Converting results to boundaries");
-        return instanceConverter.toBoundaries(resultPage.getContent());
+        By by = By.activeIn(permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail));
+        return findAllEntities(by, getDefaultPageable(page, size));
     }
 
+    @Override
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> findAllEntities(By by,
+                                                  @RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                  @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                  int page, int size) {
+        by = by.and(By.activeIn(permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail)));
+        return findAllEntities(by, getDefaultPageable(page, size));
+    }
+
+    //<editor-fold desc="CustomizedInstancesService">
+    @Override
+    public Optional<InstanceBoundary> findEntity(By by) {
+        Optional<InstanceEntity> instanceEntity = instancesDao.findOne(by.getQuery());
+        return instanceEntity.map(instanceConverter::toBoundary);
+    }
     //</editor-fold>
 
-    //<editor-fold desc="Modification methods (create/update/delete/bind)">
     @Override
-    @Transactional
-    @RoleRestricted(permittedRoles = UserRoleParameter.MANAGER)
-    public InstanceBoundary createInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                           @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                           InstanceBoundary instance) {
-        log.info("Validating instance");
-        return store(instance);
+    public List<InstanceBoundary> findAllEntities(By by, Pageable page) {
+        return instanceConverter.toBoundaries(
+                instancesDao.findAll(by.getQuery(), page).getContent()
+        );
     }
 
+    //<editor-fold desc="CustomizedInstancesService">
     @Override
     public InstanceBoundary store(InstanceBoundary instanceBoundary) {
         validateInstance(instanceBoundary);
@@ -92,26 +100,7 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
 
         return instanceConverter.toBoundary(entityToStore);
     }
-
-    @Override
-    public void bindInstances(InstanceIdBoundary parent, InstanceIdBoundary child) {
-        InstanceEntity parentEntity = findInstance(parent.getDomain(), parent.getId());
-        InstanceEntity childEntity = findInstance(child.getDomain(), child.getId());
-
-        parentEntity.addChild(childEntity);
-        childEntity.addParent(parentEntity);
-        instancesDao.save(parentEntity);
-    }
-
-    //<editor-fold desc="Deprecated methods">
-    @Override
-    @Transactional(readOnly = true)
-    @Deprecated
-    public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
-        log.error("Called deprecated method");
-        throw new RuntimeException("Unimplemented deprecated operation");
-    }
-
+    //</editor-fold>
     //</editor-fold>
 
     @Override
@@ -161,19 +150,52 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     }
 
     @Override
-    @Transactional
-    @RoleRestricted(permittedRoles = UserRoleParameter.MANAGER)
-    public void bindToParent(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                             @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                             String parentId, String parentDomain, String childId, String childDomain) {
-        InstanceEntity parent = findInstance(parentDomain, parentId);
-        InstanceEntity child = findInstance(childDomain, childId);
+    public void bindInstances(InstanceIdBoundary parent, InstanceIdBoundary child) {
+        InstanceEntity parentEntity = findInstance(parent.getDomain(), parent.getId());
+        InstanceEntity childEntity = findInstance(child.getDomain(), child.getId());
 
-        parent.addChild(child);
-        child.addParent(parent);
-        instancesDao.save(parent);
+        parentEntity.addChild(childEntity);
+        childEntity.addParent(parentEntity);
+        instancesDao.save(parentEntity);
     }
     //</editor-fold>
+
+    //<editor-fold desc="Modification methods (create/update/delete/bind)">
+    //<editor-fold desc="SearchableInstancesService">
+    @Override
+    @Transactional
+    @RoleRestricted(permittedRoles = UserRoleParameter.MANAGER)
+    public InstanceBoundary createInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                           @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                           InstanceBoundary instance) {
+        return store(instance);
+    }
+
+    private static void validateInstance(InstanceBoundary instance) {
+        if (StringUtils.isBlank(instance.getName()))
+            throw new InvalidInputException("name", instance.getName());
+
+        if (StringUtils.isBlank(instance.getType()))
+            throw new InvalidInputException("type", instance.getType());
+    }
+
+    //<editor-fold desc="Deprecated methods">
+    @Override
+    @Transactional(readOnly = true)
+    @Deprecated
+    public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
+        log.error("Called deprecated method");
+        throw new RuntimeException("Unimplemented deprecated operation");
+    }
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="Helper methods">
+    private InstanceEntity findInstance(String domain, String id) {
+        return this.instancesDao
+                .findById(instanceConverter.toInstancePrimaryKey(id, domain))
+                .orElseThrow(() -> new InstanceNotFoundException(domain, id));
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -185,53 +207,26 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
         return instanceConverter.toBoundary(existing);
     }
 
-    private void validateInstance(InstanceBoundary instance) {
-        if (StringUtils.isBlank(instance.getName()))
-            throw new InvalidInputException("name", instance.getName());
-
-        if (StringUtils.isBlank(instance.getType()))
-            throw new InvalidInputException("type", instance.getType());
-    }
-
-    //<editor-fold desc="Helper methods">
-    private InstanceEntity findInstance(String domain, String id) {
-        return this.instancesDao
-                .findById(instanceConverter.toInstancePrimaryKey(id, domain))
-                .orElseThrow(() -> new InstanceNotFoundException(domain, id));
-    }
-
     private static @NonNull Pageable getDefaultPageable(int page, int size) {
         Sort.Direction direction = Sort.Direction.DESC;
         return PageRequest.of(page, size, direction, "createdTimestamp", "id");
     }
+
+    @Override
+    @Transactional
+    @RoleRestricted(permittedRoles = UserRoleParameter.MANAGER)
+    public void bindToParent(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                             @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                             String parentId, String parentDomain, String childId, String childDomain) {
+        bindInstances(new InstanceIdBoundary(parentDomain, parentId),
+                new InstanceIdBoundary(childDomain, childId));
+    }
     //</editor-fold>
 
     @Value("${spring.application.name:dummy}")
-    public void setDomainName(String domainName) {
+    private void setDomainName(String domainName) {
         this.domainName = domainName;
     }
 
-    @Override
-    public List<InstanceBoundary> findAllEntities(By by, Pageable page) {
-        return instanceConverter.toBoundaries(
-                instancesDao.findAll(by.getQuery(), page)
-                        .getContent()
-        );
-    }
-
-    @Override
-    public Optional<InstanceBoundary> findEntity(By by) {
-        Optional<InstanceEntity> instanceEntity = instancesDao.findOne(by.getQuery());
-        return instanceEntity.map(instanceConverter::toBoundary);
-    }
-
-    @Override
-    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
-    public List<InstanceBoundary> findAllEntities(By by,
-                                                  @RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                                  @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                                  int page, int size) {
-        by = by.and(By.activeIn(permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail)));
-        return findAllEntities(by, getDefaultPageable(page, size));
-    }
+    //</editor-fold>
 }

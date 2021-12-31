@@ -35,15 +35,6 @@ public class UserPermissionsHandler {
         }
     }
 
-    private static String rolesToString(UserRoleParameter... permittedRoles) {
-        return Arrays.stream(permittedRoles)
-                // Get the name of every role.
-                .map(UserRoleParameter::toString)
-                // Sort the collection to make all the exceptions unified (with same order of roles)
-                .sorted()
-                .collect(Collectors.joining(", "));
-    }
-
     public Collection<Boolean> getAllowedActiveStatesForUser(String userDomain, String userEmail) {
         UserBoundary userBoundary = usersService.login(userDomain, userEmail);
         switch (userBoundary.getRole()) {
@@ -57,5 +48,14 @@ public class UserPermissionsHandler {
                 throw new UserPermissionException(WordUtils.capitalizeFully(userBoundary.getRole().name()),
                         rolesToString(UserRoleParameter.MANAGER, UserRoleParameter.PLAYER), userEmail, userDomain);
         }
+    }
+
+    private static String rolesToString(UserRoleParameter... permittedRoles) {
+        return Arrays.stream(permittedRoles)
+                // Get the name of every role.
+                .map(UserRoleParameter::toString)
+                // Sort the collection to make all the exceptions unified (with same order of roles)
+                .sorted()
+                .collect(Collectors.joining(", "));
     }
 }

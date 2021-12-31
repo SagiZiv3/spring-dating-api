@@ -84,14 +84,24 @@ public class LikeActivity implements InvokableActivity {
 
         // If liked for second time, assume unlike and remove the like from both users and return no match
         if (usersILiked.contains(likedUserId)) {
-            usersILiked.remove(likedUserId);
-            usersThatLikedTheOtherUser.remove(invokingUserId);
-            saveAttributesChanges(invokingUserInstance, usersILiked, InstanceOptions.Attributes.OUTGOING_LIKES);
-            saveAttributesChanges(likedUserInstance, usersThatLikedTheOtherUser, InstanceOptions.Attributes.INCOMING_LIKES);
-            return Collections.singletonMap(KEYS.IS_MATCH, false);
+            return removeLike(invokingUserId, likedUserId, invokingUserInstance,
+                    likedUserInstance, usersILiked, usersThatLikedTheOtherUser);
         }
 
         // If not already liked, add the like to the users and check if the other user liked the invoking user.
+        return addLike(invokingUserId, likedUserId, invokingUserInstance,
+                likedUserInstance, usersILiked, usersThatLikedTheOtherUser);
+    }
+
+    private Map<String, Boolean> removeLike(UserIdBoundary invokingUserId, UserIdBoundary likedUserId, InstanceBoundary invokingUserInstance, InstanceBoundary likedUserInstance, List<UserIdBoundary> usersILiked, List<UserIdBoundary> usersThatLikedTheOtherUser) {
+        usersILiked.remove(likedUserId);
+        usersThatLikedTheOtherUser.remove(invokingUserId);
+        saveAttributesChanges(invokingUserInstance, usersILiked, InstanceOptions.Attributes.OUTGOING_LIKES);
+        saveAttributesChanges(likedUserInstance, usersThatLikedTheOtherUser, InstanceOptions.Attributes.INCOMING_LIKES);
+        return Collections.singletonMap(KEYS.IS_MATCH, false);
+    }
+
+    private Map<String, Boolean> addLike(UserIdBoundary invokingUserId, UserIdBoundary likedUserId, InstanceBoundary invokingUserInstance, InstanceBoundary likedUserInstance, List<UserIdBoundary> usersILiked, List<UserIdBoundary> usersThatLikedTheOtherUser) {
         usersILiked.add(likedUserId);
         usersThatLikedTheOtherUser.add(invokingUserId);
         saveAttributesChanges(invokingUserInstance, usersILiked, InstanceOptions.Attributes.OUTGOING_LIKES);

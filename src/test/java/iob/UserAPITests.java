@@ -79,34 +79,6 @@ public class UserAPITests extends AbstractTestClass {
          */
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
-    public void testGetAllUsers(int numUsers, int page, int size, int expectedLength) {
-        List<UserBoundary> insertedUsers = IntStream.range(0, numUsers)
-                .mapToObj(i -> new NewUserBoundary(i + "_" + UserRole.PLAYER.getEmail(),
-                        UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_" + i, KEYS.USER_AVATAR_Player + "_" + i))
-                .map(newUserBoundary -> this.client.postForObject(super.buildUrl(KEYS.ROOT_NAME),
-                        newUserBoundary, UserBoundary.class))
-                .collect(Collectors.toList());
-
-        // Getting all users from server
-        String url = super.buildAdminUrl(KEYS.ROOT_NAME, domainName, UserRole.ADMIN.getEmail());
-        UserBoundary[] returnedFromRequest = this.client.getForObject(String.format("%s?page=%d&size=%d", url, page, size),
-                UserBoundary[].class);
-
-        assertThat(returnedFromRequest).isNotNull();
-
-        // Filter out the admin user because it is not part of the test.
-        List<UserBoundary> relevantUsers = Arrays.stream(returnedFromRequest).
-                filter(userBoundary -> !userBoundary.getUserId().getEmail().equals(UserRole.ADMIN.getEmail()))
-                .collect(Collectors.toList());
-
-        System.err.println(relevantUsers.size());
-        assertThat(relevantUsers.size()).isEqualTo(expectedLength);
-        assertThat(insertedUsers).containsAll(relevantUsers);
-
-    }
-
     @Test
     public void testModifyUser() {
         // Adding user to server
@@ -143,6 +115,34 @@ public class UserAPITests extends AbstractTestClass {
 
          */
 
+
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
+    public void testGetAllUsers(int numUsers, int page, int size, int expectedLength) {
+        List<UserBoundary> insertedUsers = IntStream.range(0, numUsers)
+                .mapToObj(i -> new NewUserBoundary(i + "_" + UserRole.PLAYER.getEmail(),
+                        UserRoleBoundary.PLAYER, KEYS.USERNAME_Player + "_" + i, KEYS.USER_AVATAR_Player + "_" + i))
+                .map(newUserBoundary -> this.client.postForObject(super.buildUrl(KEYS.ROOT_NAME),
+                        newUserBoundary, UserBoundary.class))
+                .collect(Collectors.toList());
+
+        // Getting all users from server
+        String url = super.buildAdminUrl(KEYS.ROOT_NAME, domainName, UserRole.ADMIN.getEmail());
+        UserBoundary[] returnedFromRequest = this.client.getForObject(String.format("%s?page=%d&size=%d", url, page, size),
+                UserBoundary[].class);
+
+        assertThat(returnedFromRequest).isNotNull();
+
+        // Filter out the admin user because it is not part of the test.
+        List<UserBoundary> relevantUsers = Arrays.stream(returnedFromRequest).
+                filter(userBoundary -> !userBoundary.getUserId().getEmail().equals(UserRole.ADMIN.getEmail()))
+                .collect(Collectors.toList());
+
+        System.err.println(relevantUsers.size());
+        assertThat(relevantUsers.size()).isEqualTo(expectedLength);
+        assertThat(insertedUsers).containsAll(relevantUsers);
 
     }
 

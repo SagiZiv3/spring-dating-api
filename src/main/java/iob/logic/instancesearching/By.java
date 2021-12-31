@@ -39,7 +39,7 @@ public abstract class By {
     }
 
     public static By childOf(String parentDomain, String parentId) {
-        return new ByParent(parentDomain, parentId);
+        return new ByRelatedInstances(parentDomain, parentId, "parentInstances");
     }
 
     public static By parentOf(InstanceIdBoundary childId) {
@@ -47,7 +47,7 @@ public abstract class By {
     }
 
     public static By parentOf(String childDomain, String childId) {
-        return new ByChild(childDomain, childId);
+        return new ByRelatedInstances(childDomain, childId, "childInstances");
     }
 
     public static By id(InstanceIdBoundary instanceId) {
@@ -66,8 +66,8 @@ public abstract class By {
         return new ByUserId(userEmail, userDomain);
     }
 
-    public static By activeIn(Collection<Boolean> allowedActiveStatesForUser) {
-        return new ByActiveState(allowedActiveStatesForUser);
+    public static By activeIn(Collection<Boolean> allowedActiveStates) {
+        return new ByActiveState(allowedActiveStates);
     }
     //</editor-fold>
 
@@ -78,14 +78,7 @@ public abstract class By {
         query = query.and(by.getSpecification());
         return this;
     }
-
-    protected abstract Specification<InstanceEntity> getSpecification();
     //</editor-fold>
 
-    public By or(By by) {
-        if (query == null)
-            query = getSpecification();
-        query.or(by.getSpecification());
-        return this;
-    }
+    protected abstract Specification<InstanceEntity> getSpecification();
 }

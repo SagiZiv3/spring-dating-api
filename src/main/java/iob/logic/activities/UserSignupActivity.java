@@ -52,6 +52,28 @@ public class UserSignupActivity implements InvokableActivity {
          * */
         // Extract location from activity
         log.info("Invoking user sign up activity");
+        InstanceBoundary instanceBoundary = createUserInstance(activityBoundary);
+        log.info("Created a user instance");
+        // Save it in the database
+        InstanceBoundary storedInstance = instancesService.store(instanceBoundary);
+        log.debug(storedInstance.toString());
+        return storedInstance;
+    }
+
+    private InstanceBoundary createUserInstance(ActivityBoundary activityBoundary) {
+        Location location = extractLocation(activityBoundary);
+        // Create an InstanceBoundary of type "user"
+        InstanceBoundary instanceBoundary = new InstanceBoundary();
+        instanceBoundary.setCreatedBy(new CreatedByBoundary(activityBoundary.getInvokedBy().getUserId()));
+        instanceBoundary.setActive(true);
+        instanceBoundary.setType(InstanceOptions.Types.USER);
+        instanceBoundary.setName("USER_INSTANCE");
+        instanceBoundary.setLocation(location);
+        addInstanceAttributes(instanceBoundary);
+        return instanceBoundary;
+    }
+
+    private Location extractLocation(ActivityBoundary activityBoundary) {
         Location location;
         if (activityBoundary.getActivityAttributes().containsKey(InstanceOptions.Attributes.LOCATION)) {
             location = objectMapper.convertValue(
@@ -62,19 +84,7 @@ public class UserSignupActivity implements InvokableActivity {
         } else {
             location = null;
         }
-        // Create an InstanceBoundary of type "user"
-        InstanceBoundary instanceBoundary = new InstanceBoundary();
-        instanceBoundary.setCreatedBy(new CreatedByBoundary(activityBoundary.getInvokedBy().getUserId()));
-        instanceBoundary.setActive(true);
-        instanceBoundary.setType(InstanceOptions.Types.USER);
-        instanceBoundary.setName("USER_INSTANCE");
-        instanceBoundary.setLocation(location);
-        addInstanceAttributes(instanceBoundary);
-        log.info("Created a user instance");
-        // Save it in the database
-        InstanceBoundary storedInstance = instancesService.store(instanceBoundary);
-        log.debug(storedInstance.toString());
-        return storedInstance;
+        return location;
     }
 
     private void addInstanceAttributes(InstanceBoundary instanceBoundary) {

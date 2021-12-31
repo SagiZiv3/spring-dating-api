@@ -38,17 +38,10 @@ public class InstanceConverter {
         return boundary;
     }
 
-    private Location toLocationBoundary(LocationEntity location) {
-        if (location == null) return null;
-        return new Location(location.getLocationLat(), location.getLocationLng());
-    }
-
-    private CreatedByBoundary toCreatedByBoundary(UserPrimaryKey createdBy) {
-        return new CreatedByBoundary(userConverter.toUserIdBoundary(createdBy.getDomain(), createdBy.getEmail()));
-    }
-
-    public InstanceIdBoundary toInstanceIdBoundary(String domain, long id) {
-        return new InstanceIdBoundary(domain, Long.toString(id));
+    public List<InstanceBoundary> toBoundaries(Collection<InstanceEntity> instanceEntities) {
+        return instanceEntities.stream()
+                .map(this::toBoundary)
+                .collect(Collectors.toList());
     }
 
     public InstanceEntity toEntity(InstanceBoundary boundary) {
@@ -69,10 +62,8 @@ public class InstanceConverter {
         return entity;
     }
 
-    public List<InstanceBoundary> toBoundaries(Collection<InstanceEntity> instanceEntities) {
-        return instanceEntities.stream()
-                .map(this::toBoundary)
-                .collect(Collectors.toList());
+    private CreatedByBoundary toCreatedByBoundary(UserPrimaryKey createdBy) {
+        return new CreatedByBoundary(userConverter.toUserIdBoundary(createdBy.getDomain(), createdBy.getEmail()));
     }
 
     public UserPrimaryKey toCreatedByEntity(CreatedByBoundary createdBy) {
@@ -83,6 +74,10 @@ public class InstanceConverter {
         entity.setEmail(createdBy.getUserId().getEmail());
         entity.setDomain(createdBy.getUserId().getDomain());
         return entity;
+    }
+
+    public InstanceIdBoundary toInstanceIdBoundary(String domain, long id) {
+        return new InstanceIdBoundary(domain, Long.toString(id));
     }
 
     public InstancePrimaryKey toInstancePrimaryKey(@NonNull InstanceIdBoundary instanceIdBoundary) {
@@ -96,5 +91,10 @@ public class InstanceConverter {
     public LocationEntity toLocationEntity(Location location) {
         if (location == null) return null;
         return new LocationEntity(location.getLat(), location.getLng());
+    }
+
+    private Location toLocationBoundary(LocationEntity location) {
+        if (location == null) return null;
+        return new Location(location.getLocationLat(), location.getLocationLng());
     }
 }

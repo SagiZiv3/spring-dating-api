@@ -27,6 +27,12 @@ public class UserController {
         this.userConverter = userConverter;
     }
 
+    @GetMapping(path = URLS.USERS.LOGIN, produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserBoundary getUser(@PathVariable("userDomain") String userDomain,
+                                @PathVariable("userEmail") String userEmail) {
+        return usersService.login(userDomain, userEmail);
+    }
+
     @PostMapping(path = URLS.USERS.CREATE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public UserBoundary createUser(@RequestBody NewUserBoundary newUser) {
         UserBoundary userBoundary = userConverter.toBoundary(newUser);
@@ -37,11 +43,5 @@ public class UserController {
     public void updateUser(@RequestBody UserBoundary user, @PathVariable("userDomain") String userDomain,
                            @PathVariable("userEmail") String userEmail) {
         usersService.updateUser(userDomain, userEmail, user);
-    }
-
-    @GetMapping(path = URLS.USERS.LOGIN, produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserBoundary getUser(@PathVariable("userDomain") String userDomain,
-                                @PathVariable("userEmail") String userEmail) {
-        return usersService.login(userDomain, userEmail);
     }
 }

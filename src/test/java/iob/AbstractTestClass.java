@@ -40,19 +40,6 @@ public abstract class AbstractTestClass {
         createUser(UserRole.ADMIN);
     }
 
-    protected UserBoundary createUser(UserRole role) {
-        NewUserBoundary user = new NewUserBoundary(role.getEmail(), role.getUserRoleBoundary(), "_", "_");
-        return client.postForObject(buildUrl("users"), user, UserBoundary.class);
-    }
-
-    @Test
-    public void contextLoads() {
-    }
-
-    protected String buildUrl(String rootName, String... parts) {
-        return String.format("%s/%s/%s", url, rootName, String.join("/", parts));
-    }
-
     @AfterEach
     public void clearDatabase() {
         client.delete(buildAdminUrl("instances", domainName, UserRole.ADMIN.getEmail()));
@@ -60,8 +47,13 @@ public abstract class AbstractTestClass {
         client.delete(buildAdminUrl("users", domainName, UserRole.ADMIN.getEmail()));
     }
 
-    protected String buildAdminUrl(String rootName, String... parts) {
-        return String.format("%s/admin/%s/%s", url, rootName, String.join("/", parts));
+    @Test
+    public void contextLoads() {
+    }
+
+    protected UserBoundary createUser(UserRole role) {
+        NewUserBoundary user = new NewUserBoundary(role.getEmail(), role.getUserRoleBoundary(), "_", "_");
+        return client.postForObject(buildUrl("users"), user, UserBoundary.class);
     }
 
     protected InstanceBoundary createInstance(String instanceType, String instanceName) {
@@ -74,5 +66,13 @@ public abstract class AbstractTestClass {
         return this.client.postForObject(buildUrl("instances", domainName, UserRole.MANAGER.getEmail()),
                 addMe,
                 InstanceBoundary.class);
+    }
+
+    protected String buildUrl(String rootName, String... parts) {
+        return String.format("%s/%s/%s", url, rootName, String.join("/", parts));
+    }
+
+    protected String buildAdminUrl(String rootName, String... parts) {
+        return String.format("%s/admin/%s/%s", url, rootName, String.join("/", parts));
     }
 }

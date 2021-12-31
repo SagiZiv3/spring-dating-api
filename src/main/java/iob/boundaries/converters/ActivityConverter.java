@@ -35,18 +35,6 @@ public class ActivityConverter {
         return boundary;
     }
 
-    private InstanceIdWrapper toInstanceIdBoundary(InstancePrimaryKey instanceEntity) {
-        return new InstanceIdWrapper(instanceConverter.toInstanceIdBoundary(instanceEntity.getDomain(), instanceEntity.getId()));
-    }
-
-    private InvokedByBoundary toInvokedByBoundary(UserPrimaryKey userEntity) {
-        return new InvokedByBoundary(userConverter.toUserIdBoundary(userEntity.getDomain(), userEntity.getEmail()));
-    }
-
-    public ActivityIdBoundary toActivityIdBoundary(String domain, long id) {
-        return new ActivityIdBoundary(domain, Long.toString(id));
-    }
-
     public ActivityEntity toEntity(ActivityBoundary boundary) {
         ActivityEntity entity = new ActivityEntity();
         entity.setType(boundary.getType());
@@ -62,11 +50,28 @@ public class ActivityConverter {
         return entity;
     }
 
+    private ActivityIdBoundary toActivityIdBoundary(String domain, long id) {
+        return new ActivityIdBoundary(domain, Long.toString(id));
+    }
+
+    //<editor-fold desc="Helper methods">
+    private ActivityPrimaryKey toActivityPrimaryKey(ActivityIdBoundary activityIdBoundary) {
+        return new ActivityPrimaryKey(Long.parseLong(activityIdBoundary.getId()), activityIdBoundary.getDomain());
+    }
+
+    private InstanceIdWrapper toInstanceIdBoundary(InstancePrimaryKey instanceEntity) {
+        return new InstanceIdWrapper(instanceConverter.toInstanceIdBoundary(instanceEntity.getDomain(), instanceEntity.getId()));
+    }
+
     private InstancePrimaryKey toInstanceIdEntity(InstanceIdWrapper instanceId) {
         InstancePrimaryKey entity = new InstancePrimaryKey();
         entity.setDomain(instanceId.getInstanceId().getDomain());
         entity.setId(Long.parseLong(instanceId.getInstanceId().getId()));
         return entity;
+    }
+
+    private InvokedByBoundary toInvokedByBoundary(UserPrimaryKey userEntity) {
+        return new InvokedByBoundary(userConverter.toUserIdBoundary(userEntity.getDomain(), userEntity.getEmail()));
     }
 
     private UserPrimaryKey toInvokedByEntity(InvokedByBoundary invokedBy) {
@@ -75,8 +80,5 @@ public class ActivityConverter {
         entity.setEmail(invokedBy.getUserId().getEmail());
         return entity;
     }
-
-    public ActivityPrimaryKey toActivityPrimaryKey(ActivityIdBoundary activityIdBoundary) {
-        return new ActivityPrimaryKey(Long.parseLong(activityIdBoundary.getId()), activityIdBoundary.getDomain());
-    }
+    //</editor-fold>
 }

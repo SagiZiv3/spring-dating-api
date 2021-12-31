@@ -110,7 +110,6 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     //</editor-fold>
 
     //<editor-fold desc="Helper methods">
-
     private void validateActivity(ActivityBoundary activity) {
         if (StringUtils.isBlank(activity.getType())) {
             throw new InvalidInputException("type", activity.getType());
@@ -121,6 +120,11 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         if (activity.getInstance() == null) {
             throw new InvalidInputException("instance", null);
         }
+    }
+
+    @Value("${spring.application.name:dummy}")
+    private void setDomainName(String domainName) {
+        this.domainName = domainName;
     }
     //</editor-fold>
 
@@ -133,9 +137,4 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         throw new RuntimeException("Unimplemented deprecated operation");
     }
     //</editor-fold>
-
-    @Value("${spring.application.name:dummy}")
-    public void setDomainName(String domainName) {
-        this.domainName = domainName;
-    }
 }

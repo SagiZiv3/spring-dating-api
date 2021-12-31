@@ -58,6 +58,16 @@ public class UserLoginActivity implements InvokableActivity {
         if (instancesService.findEntity(by).isPresent()) {
             throw new MultipleLoginsException();
         }
+        InstanceBoundary instanceBoundary = createLoginInstance(activityBoundary);
+        // Save it in the database
+        InstanceBoundary storedInstance = instancesService.store(instanceBoundary);
+        instancesService.bindInstances(activityBoundary.getInstance().getInstanceId(),
+                storedInstance.getInstanceId());
+
+        return storedInstance;
+    }
+
+    private InstanceBoundary createLoginInstance(ActivityBoundary activityBoundary) {
         // Extract location from activity
         // The location is the user's current location.
         Location location = objectMapper.convertValue(
@@ -71,11 +81,6 @@ public class UserLoginActivity implements InvokableActivity {
         instanceBoundary.setType(InstanceOptions.Types.USER_LOGIN);
         instanceBoundary.setName("USER_LOGIN");
         instanceBoundary.setLocation(location);
-        // Save it in the database
-        InstanceBoundary storedInstance = instancesService.store(instanceBoundary);
-        instancesService.bindInstances(activityBoundary.getInstance().getInstanceId(),
-                storedInstance.getInstanceId());
-        // Return the instance
-        return storedInstance;
+        return instanceBoundary;
     }
 }

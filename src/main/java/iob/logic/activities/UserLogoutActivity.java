@@ -43,9 +43,9 @@ public class UserLogoutActivity implements InvokableActivity {
         By by = By.childOf(activityBoundary.getInstance().getInstanceId())
                 .and(By.type(InstanceOptions.Types.USER_LOGIN))
                 .and(By.activeIn(Collections.singleton(true)));
-        InstanceBoundary recentLogin = instancesService.findEntity(by)
+        InstanceBoundary lastLogin = instancesService.findEntity(by)
                 .orElseThrow(MissingLoginInstanceException::new); // Should never happen
-        recentLogin.setActive(false);
-        return instancesService.update(recentLogin);
+        lastLogin.setActive(false);
+        return instancesService.update(lastLogin);
     }
 }

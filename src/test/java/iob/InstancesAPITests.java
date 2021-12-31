@@ -35,27 +35,6 @@ class InstancesAPITests extends AbstractTestClass {
         super.createUser(UserRole.MANAGER);
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
-    public void testGetAllInstances(int numInstances, int page, int size, int expectedLength) {
-        // GIVEN
-        // we have instances in the program
-        List<InstanceBoundary> insertedInstances = IntStream.range(0, numInstances)
-                .mapToObj(i -> super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_" + i))
-                .collect(Collectors.toList());
-
-        // Get all instances
-        String url = super.buildUrl(KEYS.ROOT_NAME, domainName, UserRole.MANAGER.getEmail());
-        InstanceBoundary[] returnedFromRequest = this.client.getForObject(String.format("%s?page=%d&size=%d", url, page, size),
-                InstanceBoundary[].class);
-
-        assertThat(returnedFromRequest).isNotNull();
-        // We should get only one element because the database is empty before this test.
-        assertThat(returnedFromRequest.length).isEqualTo(expectedLength);
-        // And that one element must be one of the values we inserted.
-        assertThat(insertedInstances).containsAll(Arrays.asList(returnedFromRequest));
-    }
-
     @Test
     public void testInsertNewInstance() {
         // GIVEN
@@ -75,7 +54,6 @@ class InstancesAPITests extends AbstractTestClass {
         assertEquals(fetchedFromDB.getType(), KEYS.INSTANCE_TYPE);
 
     }
-
 
     @Test
     public void testModifyInstance() {
@@ -123,7 +101,6 @@ class InstancesAPITests extends AbstractTestClass {
 
     }
 
-
     @Test
     public void testBindChildToInstance() {
         // GIVEN we have 2 instances
@@ -164,6 +141,26 @@ class InstancesAPITests extends AbstractTestClass {
          */
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
+    public void testGetAllInstances(int numInstances, int page, int size, int expectedLength) {
+        // GIVEN
+        // we have instances in the program
+        List<InstanceBoundary> insertedInstances = IntStream.range(0, numInstances)
+                .mapToObj(i -> super.createInstance(KEYS.INSTANCE_TYPE, KEYS.INSTANCE_NAME + "_" + i))
+                .collect(Collectors.toList());
+
+        // Get all instances
+        String url = super.buildUrl(KEYS.ROOT_NAME, domainName, UserRole.MANAGER.getEmail());
+        InstanceBoundary[] returnedFromRequest = this.client.getForObject(String.format("%s?page=%d&size=%d", url, page, size),
+                InstanceBoundary[].class);
+
+        assertThat(returnedFromRequest).isNotNull();
+        // We should get only one element because the database is empty before this test.
+        assertThat(returnedFromRequest.length).isEqualTo(expectedLength);
+        // And that one element must be one of the values we inserted.
+        assertThat(insertedInstances).containsAll(Arrays.asList(returnedFromRequest));
+    }
 
     @ParameterizedTest
     @ArgumentsSource(PaginationGetAllArgumentsProvider.class)
