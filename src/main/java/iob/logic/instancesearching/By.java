@@ -12,6 +12,7 @@ import java.util.Collection;
 public abstract class By {
     @Getter
     private Specification<InstanceEntity> query;
+    private StringBuilder stringBuilder;
 
     By() {
         this.query = null;
@@ -73,12 +74,22 @@ public abstract class By {
 
     //<editor-fold desc="Concatenation methods">
     public By and(By by) {
-        if (query == null)
+        if (query == null) {
             query = getSpecification();
+            stringBuilder = new StringBuilder(toString());
+        }
+        stringBuilder.append(", and ").append(by.toString());
         query = query.and(by.getSpecification());
         return this;
     }
     //</editor-fold>
+
+    @Override
+    public abstract String toString();
+
+    public String getHumanReadableValue() {
+        return stringBuilder.toString();
+    }
 
     protected abstract Specification<InstanceEntity> getSpecification();
 }

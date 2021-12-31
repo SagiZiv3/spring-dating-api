@@ -14,6 +14,11 @@ public class ById extends By {
     }
 
     @Override
+    public String toString() {
+        return String.format("\"id\" is {domain=%s, id=%s}", domain, id);
+    }
+
+    @Override
     protected Specification<InstanceEntity> getSpecification() {
         return (root, query, criteriaBuilder) -> {
             Predicate domainEquals = criteriaBuilder.equal(root.get("domain"), domain);

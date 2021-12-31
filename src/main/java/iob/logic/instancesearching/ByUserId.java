@@ -14,6 +14,11 @@ public class ByUserId extends By {
     }
 
     @Override
+    public String toString() {
+        return String.format("\"createBy\" is {user email: %s, user domain: %s}", email, domain);
+    }
+
+    @Override
     protected Specification<InstanceEntity> getSpecification() {
         return (root, query, criteriaBuilder) -> {
             Predicate domainEquals = criteriaBuilder.equal(root.get("createdBy").get("domain"), domain);

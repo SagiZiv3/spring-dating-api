@@ -17,16 +17,21 @@ public class ByRelatedInstances extends By {
     }
 
     @Override
+    public String toString() {
+        return String.format("\"%s\" with id {domain=%s, id=%s}", relatedInstancesName, domain, id);
+    }
+
+    @Override
     protected Specification<InstanceEntity> getSpecification() {
         return (root, criteriaQuery, criteriaBuilder) -> {
             // Get all the related instances
-            Join<Object, Object> childInstances = root.join(relatedInstancesName);
+            Join<Object, Object> relatedInstances = root.join(relatedInstancesName);
             Predicate domainPredicate = criteriaBuilder.equal(
-                    childInstances.get("domain"),
+                    relatedInstances.get("domain"),
                     domain
             );
             Predicate idPredicate = criteriaBuilder.equal(
-                    childInstances.get("id"),
+                    relatedInstances.get("id"),
                     id
             );
             return criteriaBuilder.and(domainPredicate, idPredicate);

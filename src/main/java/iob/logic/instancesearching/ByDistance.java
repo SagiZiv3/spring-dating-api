@@ -15,6 +15,12 @@ public class ByDistance extends By {
     }
 
     @Override
+    public String toString() {
+        return String.format("\"location\"'s distance from (%f, %f) is less than or equal to %f",
+                centerLat, centerLng, radius);
+    }
+
+    @Override
     protected Specification<InstanceEntity> getSpecification() {
         return (root, query, criteriaBuilder) -> {
             // Get lat, lng

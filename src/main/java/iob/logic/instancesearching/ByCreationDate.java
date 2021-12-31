@@ -12,6 +12,11 @@ public class ByCreationDate extends By {
     }
 
     @Override
+    public String toString() {
+        return String.format("\"createdTimestamp\" between %s and %s", timeFrame.getStartDate(), timeFrame.getEndDate());
+    }
+
+    @Override
     protected Specification<InstanceEntity> getSpecification() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.between(
                 root.get("createdTimestamp"),

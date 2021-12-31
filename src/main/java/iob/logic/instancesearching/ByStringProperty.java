@@ -4,12 +4,17 @@ import iob.data.InstanceEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ByStringProperty extends By {
-    private final String value;
     private final String propertyName;
+    private final String value;
 
     ByStringProperty(String propertyName, String value) {
         this.propertyName = propertyName;
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("\"%s\" equals \"%s\"", propertyName, value);
     }
 
     @Override
