@@ -5,21 +5,20 @@ import iob.boundaries.helpers.TimeFrame;
 import iob.boundaries.helpers.UserIdBoundary;
 import iob.data.InstanceEntity;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.util.Lazy;
 
 import java.util.Collection;
 
 public abstract class By {
-    private Specification<InstanceEntity> query;
-    private StringBuilder stringBuilder;
+    private Lazy<StringBuilder> stringBuilder;
+    private Lazy<Specification<InstanceEntity>> query;
 
     By() {
-        this.query = null;
+        this.query = Lazy.of(this::getSpecification);
+        stringBuilder = Lazy.of(() -> new StringBuilder(getHumanReadableValue()));
     }
 
-    //<editor-fold desc="Static initializer">
-    public static By name(String name) {
-        return new ByStringProperty("name", name);
-    }
+    protected abstract String getHumanReadableValue();
 
     public static By type(String type) {
         return new ByStringProperty("type", type);
@@ -70,36 +69,33 @@ public abstract class By {
     }
     //</editor-fold>
 
+    //<editor-fold desc="Static initializers">
+    public static By name(String name) {
+        return new ByStringProperty("name", name);
+    }
+
     //<editor-fold desc="Concatenation methods">
     public By and(By by) {
-        query = getQuery().and(by.getSpecification());
-        getStringBuilder().append(", and ").append(by);
+        query = query.map(q -> q.and(by.getSpecification()));
+        stringBuilder = stringBuilder.map(sb -> sb.append(", and ").append(by));
         return this;
     }
     //</editor-fold>
 
-    @Override
-    public String toString() {
-        if (stringBuilder == null)
-            return getHumanReadableValue();
-        return stringBuilder.toString();
+    public By or(By by) {
+        query = query.map(q -> q.or(by.getSpecification()));
+        stringBuilder = stringBuilder.map(sb -> sb.append(", or ").append(by));
+        return this;
     }
-
-    protected abstract String getHumanReadableValue();
 
     public Specification<InstanceEntity> getQuery() {
-        if (query == null) {
-            query = getSpecification();
-            stringBuilder = new StringBuilder(toString());
-        }
-        return query;
-    }
-
-    private StringBuilder getStringBuilder() {
-        if (stringBuilder == null)
-            stringBuilder = new StringBuilder(toString());
-        return stringBuilder;
+        return query.get();
     }
 
     protected abstract Specification<InstanceEntity> getSpecification();
+
+    @Override
+    public String toString() {
+        return stringBuilder.get().toString();
+    }
 }
