@@ -3,12 +3,18 @@
 ## References:
 1. `lombok` annotation
    - https://medium.com/@udith.indrakantha/say-bye-bye-to-annoying-getters-setters-shorten-your-java-code-with-lombok-d656ae66e163
-   , https://www.baeldung.com/intro-to-project-lombok
+     , https://www.baeldung.com/intro-to-project-lombok
 2. `lombok` in VS Code - https://stackoverflow.com/iob/51334122
 3. `RequestMapping` and `GetMapping` - https://stackoverflow.com/iob/53132931
 4. Complex primary keys - https://stackoverflow.com/questions/41143913/sql-jpa-multiple-columns-as-primary-key
 5. HTTP status codes - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 6. Using multiple embedded classes in an entity - https://stackoverflow.com/a/12912377/9977758
+7. Dynamic query with pagination - https://stackoverflow.com/a/63292889/9977758
+8. Parameterized unit tests - https://www.arhohuttunen.com/junit-5-parameterized-tests/
+9. Logback appenders - https://logback.qos.ch/manual/appenders.html
+10. Logging levels - https://sematext.com/blog/logging-levels/
+11. Logback message pattern - http://logback.qos.ch/manual/layouts.html#conversionWord
+12. Postman flows - https://betterprogramming.pub/postman-flows-54ede6e0b558
 
 ---
 **Edit iob file, create iob new file, and clone from Bitbucket in under 2 minutes**
