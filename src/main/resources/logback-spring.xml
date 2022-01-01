@@ -1,72 +1,26 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    <appender name="LOGIC_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>Logs/logic_layer.log</file>
-
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logic_logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>7MB</maxFileSize>
-        </triggeringPolicy>
-
+    <appender name="CONTROLLERS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>Logs/controllers.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d %-5level --- [%thread] %-50logger : %msg%n</Pattern>
+            <Pattern>%d %-5level --- [%thread] %-60logger : %msg%n</Pattern>
         </encoder>
-    </appender>
-    <appender name="DB_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>Logs/db.log</file>
 
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>db_logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>DatingApp-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>1MB</maxFileSize>
             <maxHistory>30</maxHistory>
+            <totalSizeCap>10MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
-
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>7MB</maxFileSize>
-        </triggeringPolicy>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d %-5level --- [%thread] %-50logger : %msg%n</Pattern>
-        </encoder>
     </appender>
-    <appender name="ACTIVITIES_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>Logs/activities.log</file>
-
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>activities_logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>7MB</maxFileSize>
-        </triggeringPolicy>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d %-5level --- [%thread] %-50logger : %msg%n</Pattern>
-        </encoder>
-    </appender>
-
-    <logger name="iob.logic" level="INFO" additivity="false">
-        <appender-ref ref="CONSOLE"/>
+    <logger name="iob.controllers" level="TRACE" additivity="false">
+        <!--        <appender-ref ref="CONSOLE"/>-->
+        <appender-ref ref="CONTROLLERS_FILE"/>
     </logger>
-    <logger name="iob.logic" level="DEBUG" additivity="false">
-        <appender-ref ref="LOGIC_FILE"/>
+    <logger name="iob.logic.exceptions" level="WARN" additivity="false">
+        <!--        <appender-ref ref="CONSOLE"/>-->
+        <appender-ref ref="CONTROLLERS_FILE"/>
     </logger>
-
-    <logger name="iob.logic.db" level="WARN" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-    <logger name="iob.logic.db" level="TRACE" additivity="false">
-        <appender-ref ref="DB_FILE"/>
-    </logger>
-
-    <logger name="iob.logic.activities" level="TRACE" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-    <logger name="iob.logic.activities" level="DEBUG" additivity="false">
-        <appender-ref ref="ACTIVITIES_FILE"/>
-    </logger>
-
 </configuration>

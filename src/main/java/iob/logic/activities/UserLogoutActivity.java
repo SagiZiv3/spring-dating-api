@@ -4,14 +4,12 @@ import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.logic.exceptions.activity.MissingLoginInstanceException;
 import iob.logic.instancesearching.By;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
 @Service("userLogout")
-@Slf4j
 public class UserLogoutActivity implements InvokableActivity {
     private final CustomizedInstancesService instancesService;
 
@@ -22,7 +20,6 @@ public class UserLogoutActivity implements InvokableActivity {
 
     @Override
     public Object invoke(ActivityBoundary activityBoundary) {
-        log.info("Invoking logout activity");
         /*
          * Activity expected structure (ignoring unnecessary attributes):
          * {
@@ -46,7 +43,6 @@ public class UserLogoutActivity implements InvokableActivity {
         By by = By.childOf(activityBoundary.getInstance().getInstanceId())
                 .and(By.type(InstanceOptions.Types.USER_LOGIN))
                 .and(By.activeIn(Collections.singleton(true)));
-        log.trace("Searching for the most recent login instance");
         InstanceBoundary lastLogin = instancesService.findEntity(by)
                 .orElseThrow(MissingLoginInstanceException::new); // Should never happen
         lastLogin.setActive(false);

@@ -53,18 +53,6 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     @Override
     @Transactional(readOnly = true)
     @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
-    public List<InstanceBoundary> findAllEntities(By by,
-                                                  @RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                                  @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                                  int page, int size) {
-        by = by.and(By.activeIn(permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail)));
-        log.info("Searching for instances in database with: {}", by.getHumanReadableValue());
-        return findAllEntities(by, getDefaultPageable(page, size));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
     public List<InstanceBoundary> getAllInstances(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
                                                   @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                                                   int page, int size) {
@@ -73,21 +61,26 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
         return findAllEntities(by, getDefaultPageable(page, size));
     }
 
+    @Override
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public List<InstanceBoundary> findAllEntities(By by,
+                                                  @RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                  @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                  int page, int size) {
+        by = by.and(By.activeIn(permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail)));
+        return findAllEntities(by, getDefaultPageable(page, size));
+    }
+
     //<editor-fold desc="CustomizedInstancesService">
     @Override
-    @Transactional(readOnly = true)
     public Optional<InstanceBoundary> findEntity(By by) {
-        log.trace("Searching for entity with: {}", by.getHumanReadableValue());
         Optional<InstanceEntity> instanceEntity = instancesDao.findOne(by.getQuery());
         return instanceEntity.map(instanceConverter::toBoundary);
     }
-
     //</editor-fold>
 
     @Override
-    @Transactional(readOnly = true)
     public List<InstanceBoundary> findAllEntities(By by, Pageable page) {
-        log.trace("Searching for entity with: {}", by.getHumanReadableValue());
         return instanceConverter.toBoundaries(
                 instancesDao.findAll(by.getQuery(), page).getContent()
         );
@@ -95,53 +88,26 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
 
     //<editor-fold desc="CustomizedInstancesService">
     @Override
-    @Transactional
     public InstanceBoundary store(InstanceBoundary instanceBoundary) {
-        log.trace("Storing instance in DB");
         validateInstance(instanceBoundary);
         InstanceEntity entityToStore = instanceConverter.toEntity(instanceBoundary);
         entityToStore.setCreatedTimestamp(new Date());
         entityToStore.setDomain(domainName);
-        log.trace("Converted to entity: {}", entityToStore);
+        log.info("Converted to entity: {}", entityToStore);
 
         entityToStore = instancesDao.save(entityToStore);
-        log.trace("Saved instance: {}", entityToStore);
+        log.info("Saved instance: {}", entityToStore);
 
         return instanceConverter.toBoundary(entityToStore);
     }
     //</editor-fold>
     //</editor-fold>
 
-    //<editor-fold desc="Modification methods (create/update/delete/bind)">
-
     @Override
-    @Transactional
     public InstanceBoundary update(InstanceBoundary instanceBoundary) {
         InstanceEntity entity = instanceConverter.toEntity(instanceBoundary);
         entity = instancesDao.save(entity);
         return instanceConverter.toBoundary(entity);
-    }
-
-    @Override
-    @Transactional
-    public void bindInstances(InstanceIdBoundary parent, InstanceIdBoundary child) {
-        InstanceEntity parentEntity = findInstance(parent.getDomain(), parent.getId());
-        InstanceEntity childEntity = findInstance(child.getDomain(), child.getId());
-
-        parentEntity.addChild(childEntity);
-        childEntity.addParent(parentEntity);
-        instancesDao.save(parentEntity);
-    }
-
-    //<editor-fold desc="SearchableInstancesService">
-    @Override
-    @Transactional
-    @RoleRestricted(permittedRoles = UserRoleParameter.MANAGER)
-    public InstanceBoundary createInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                           @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                           InstanceBoundary instance) {
-        log.info("Creating an instance");
-        return store(instance);
     }
 
     @Override
@@ -171,29 +137,8 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
         }
 
         entity = instancesDao.save(entity);
-        log.info("Modified instance was saved in DB");
+        log.info("Modified instance was saved in DB: {}", entity);
         return instanceConverter.toBoundary(entity);
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="Deprecated methods">
-    @Override
-    @Transactional(readOnly = true)
-    @Deprecated
-    public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
-        log.error("Called deprecated method");
-        throw new RuntimeException("Unimplemented deprecated operation");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
-    public InstanceBoundary getSpecificInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
-                                                @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
-                                                String instanceDomain, String instanceId) {
-        log.info("Searching for instance with id {} in domain {}", instanceId, instanceDomain);
-        InstanceEntity existing = findInstance(instanceDomain, instanceId);
-        return instanceConverter.toBoundary(existing);
     }
 
     @Override
@@ -201,14 +146,30 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     @RoleRestricted(permittedRoles = UserRoleParameter.ADMIN)
     public void deleteAllInstances(@RoleParameter(parameterType = ParameterType.DOMAIN) String adminDomain,
                                    @RoleParameter(parameterType = ParameterType.EMAIL) String adminEmail) {
-        log.info("Deleting all instances");
         instancesDao.deleteAll();
+    }
+
+    @Override
+    public void bindInstances(InstanceIdBoundary parent, InstanceIdBoundary child) {
+        InstanceEntity parentEntity = findInstance(parent.getDomain(), parent.getId());
+        InstanceEntity childEntity = findInstance(child.getDomain(), child.getId());
+
+        parentEntity.addChild(childEntity);
+        childEntity.addParent(parentEntity);
+        instancesDao.save(parentEntity);
     }
     //</editor-fold>
 
-    //</editor-fold>
-
-    //<editor-fold desc="Helper methods">
+    //<editor-fold desc="Modification methods (create/update/delete/bind)">
+    //<editor-fold desc="SearchableInstancesService">
+    @Override
+    @Transactional
+    @RoleRestricted(permittedRoles = UserRoleParameter.MANAGER)
+    public InstanceBoundary createInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                           @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                           InstanceBoundary instance) {
+        return store(instance);
+    }
 
     private static void validateInstance(InstanceBoundary instance) {
         if (StringUtils.isBlank(instance.getName()))
@@ -218,10 +179,32 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
             throw new InvalidInputException("type", instance.getType());
     }
 
+    //<editor-fold desc="Deprecated methods">
+    @Override
+    @Transactional(readOnly = true)
+    @Deprecated
+    public List<InstanceBoundary> getAllInstances(String userDomain, String userEmail) {
+        log.error("Called deprecated method");
+        throw new RuntimeException("Unimplemented deprecated operation");
+    }
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="Helper methods">
     private InstanceEntity findInstance(String domain, String id) {
         return this.instancesDao
                 .findById(instanceConverter.toInstancePrimaryKey(id, domain))
                 .orElseThrow(() -> new InstanceNotFoundException(domain, id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @RoleRestricted(permittedRoles = {UserRoleParameter.MANAGER, UserRoleParameter.PLAYER})
+    public InstanceBoundary getSpecificInstance(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
+                                                @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
+                                                String instanceDomain, String instanceId) {
+        InstanceEntity existing = findInstance(instanceDomain, instanceId);
+        return instanceConverter.toBoundary(existing);
     }
 
     private static @NonNull Pageable getDefaultPageable(int page, int size) {
@@ -229,21 +212,21 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
         return PageRequest.of(page, size, direction, "createdTimestamp", "id");
     }
 
-    @Value("${spring.application.name:dummy}")
-    private void setDomainName(String domainName) {
-        this.domainName = domainName;
-    }
-    //</editor-fold>
-
     @Override
     @Transactional
     @RoleRestricted(permittedRoles = UserRoleParameter.MANAGER)
     public void bindToParent(@RoleParameter(parameterType = ParameterType.DOMAIN) String userDomain,
                              @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                              String parentId, String parentDomain, String childId, String childDomain) {
-        log.info("Binding {} from domain {} to {} from domain {}", parentId, parentDomain, childId, childDomain);
         bindInstances(new InstanceIdBoundary(parentDomain, parentId),
                 new InstanceIdBoundary(childDomain, childId));
     }
+    //</editor-fold>
+
+    @Value("${spring.application.name:dummy}")
+    private void setDomainName(String domainName) {
+        this.domainName = domainName;
+    }
+
     //</editor-fold>
 }
