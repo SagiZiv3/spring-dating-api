@@ -2,12 +2,14 @@ package iob.logic.exceptions.activity;
 
 
 import iob.logic.exceptions.ExceptionResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class ActivityExceptionsHandler {
@@ -62,7 +64,14 @@ public class ActivityExceptionsHandler {
     @ExceptionHandler(UnknownActivityTypeException.class)
     private ResponseEntity<ExceptionResponse> handleUnknownActivityTypeException(HttpServletRequest request, UnknownActivityTypeException e) {
         ExceptionResponse response = new ExceptionResponse(
-                String.format("Unknown activity type: '%s'.", e.getType()),
+                String.format("Unknown activity type: '%s', available types are: (%s)",
+                        e.getType(),
+                        e.getAvailableTypes()
+                                .stream()
+                                .sorted()
+                                .map(str -> StringUtils.wrap(str, "'"))
+                                .collect(Collectors.joining(", "))
+                ),
                 request.getRequestURI(), HttpStatus.UNPROCESSABLE_ENTITY
         );
         return ResponseEntity.status(response.getHttpStatus()).body(response);

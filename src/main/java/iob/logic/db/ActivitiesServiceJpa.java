@@ -15,10 +15,8 @@ import iob.logic.exceptions.activity.UnknownActivityTypeException;
 import iob.logic.pagedservices.PagedActivitiesService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,25 +26,31 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class ActivitiesServiceJpa implements PagedActivitiesService {
     //<editor-fold desc="Class variables">
+    // Get all the beans that implements `InvokableActivity` and their names.
+    // That way, we can return to the user the names of the activities they can invoke.
+    // Source: https://stackoverflow.com/a/59440355/9977758
+    // This solution is good for our needs because we don't register new beans at runtime.
+    private final Map<String, InvokableActivity> possibleActivities;
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
     private final UserPermissionsHandler userPermissionsHandler;
-    private final ApplicationContext applicationContext;
     private String domainName;
     //</editor-fold>
 
     @Autowired
-    public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao, UserPermissionsHandler userPermissionsHandler, ApplicationContext applicationContext) {
+    public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao,
+                                UserPermissionsHandler userPermissionsHandler, Map<String, InvokableActivity> possibleActivities) {
         this.activityConverter = activityConverter;
         this.activitiesDao = activitiesDao;
         this.userPermissionsHandler = userPermissionsHandler;
-        this.applicationContext = applicationContext;
+        this.possibleActivities = possibleActivities;
     }
 
     //<editor-fold desc="Get methods">
@@ -62,7 +66,7 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         Page<ActivityEntity> resultPage = this.activitiesDao
                 .findAll(pageable);
 
-        log.info("Converting results to boundaries");
+        log.trace("Converting results to boundaries");
         return resultPage
                 .stream()
                 .map(this.activityConverter::toBoundary)
@@ -77,26 +81,18 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
         // Make sure that the user is actually a player.
         userPermissionsHandler.throwIfNotAuthorized(activity.getInvokedBy().getUserId().getDomain(),
                 activity.getInvokedBy().getUserId().getEmail(), UserRoleParameter.PLAYER);
-        saveEntity(activity);
 
-        try {
-            return applicationContext.getBean(activity.getType(), InvokableActivity.class)
-                    .invoke(activity);
-        } catch (BeansException e) {
-            throw new UnknownActivityTypeException(activity.getType());
-        }
-    }
-
-    private void saveEntity(ActivityBoundary activity) {
-        log.info("Validating activity");
         validateActivity(activity);
-        ActivityEntity entityToStore = activityConverter.toEntity(activity);
-        entityToStore.setCreatedTimestamp(new Date());
-        entityToStore.setDomain(domainName);
-        log.info("Converted to an entity: {}", entityToStore);
 
-        entityToStore = activitiesDao.save(entityToStore);
-        log.info("Activity was saved in DB: {}", entityToStore);
+        // Exit early if the there is no activity for the specified type.
+        if (!possibleActivities.containsKey(activity.getType())) {
+            log.error("Tried to invoke activity of unknown type: {}", activity.getType());
+            throw new UnknownActivityTypeException(activity.getType(), possibleActivities.keySet());
+        }
+
+        saveEntity(activity);
+        return possibleActivities.get(activity.getType())
+                .invoke(activity);
     }
 
     @Override
@@ -111,15 +107,29 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
 
     //<editor-fold desc="Helper methods">
     private void validateActivity(ActivityBoundary activity) {
+        log.trace("Validating activity");
         if (StringUtils.isBlank(activity.getType())) {
+            log.error("Activity's type is empty");
             throw new InvalidInputException("type", activity.getType());
         }
         if (activity.getInvokedBy() == null) {
+            log.error("Activity's invoking user is not specified");
             throw new InvalidInputException("invoked by", null);
         }
         if (activity.getInstance() == null) {
+            log.error("Activity's related instance is not specified");
             throw new InvalidInputException("instance", null);
         }
+    }
+
+    private void saveEntity(ActivityBoundary activity) {
+        ActivityEntity entityToStore = activityConverter.toEntity(activity);
+        entityToStore.setCreatedTimestamp(new Date());
+        entityToStore.setDomain(domainName);
+        log.trace("Converted to an entity");
+
+        entityToStore = activitiesDao.save(entityToStore);
+        log.trace("Activity was saved in DB with id: {}", entityToStore.getId());
     }
 
     @Value("${spring.application.name:dummy}")
