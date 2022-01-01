@@ -1,9 +1,12 @@
 package iob.logic.db;
 
 import iob.boundaries.ActivityBoundary;
+import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.ActivityConverter;
+import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.data.ActivityEntity;
 import iob.logic.UserPermissionsHandler;
+import iob.logic.activities.CustomizedInstancesService;
 import iob.logic.activities.InvokableActivity;
 import iob.logic.annotations.ParameterType;
 import iob.logic.annotations.RoleParameter;
@@ -12,6 +15,8 @@ import iob.logic.annotations.UserRoleParameter;
 import iob.logic.db.dao.ActivitiesDao;
 import iob.logic.exceptions.InvalidInputException;
 import iob.logic.exceptions.activity.UnknownActivityTypeException;
+import iob.logic.exceptions.instance.InstanceNotFoundException;
+import iob.logic.instancesearching.By;
 import iob.logic.pagedservices.PagedActivitiesService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,16 +47,18 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     private final ActivityConverter activityConverter;
     private final ActivitiesDao activitiesDao;
     private final UserPermissionsHandler userPermissionsHandler;
+    private final CustomizedInstancesService instancesService;
     private String domainName;
     //</editor-fold>
 
     @Autowired
     public ActivitiesServiceJpa(ActivityConverter activityConverter, ActivitiesDao activitiesDao,
-                                UserPermissionsHandler userPermissionsHandler, Map<String, InvokableActivity> possibleActivities) {
+                                UserPermissionsHandler userPermissionsHandler, Map<String, InvokableActivity> possibleActivities, CustomizedInstancesService instancesService) {
         this.activityConverter = activityConverter;
         this.activitiesDao = activitiesDao;
         this.userPermissionsHandler = userPermissionsHandler;
         this.possibleActivities = possibleActivities;
+        this.instancesService = instancesService;
     }
 
     //<editor-fold desc="Get methods">
@@ -108,6 +116,12 @@ public class ActivitiesServiceJpa implements PagedActivitiesService {
     //<editor-fold desc="Helper methods">
     private void validateActivity(ActivityBoundary activity) {
         log.trace("Validating activity");
+        InstanceIdBoundary instanceId = activity.getInstance().getInstanceId();
+        Optional<InstanceBoundary> relatedInstance = instancesService.findEntity(By.id(instanceId));
+        if (!relatedInstance.isPresent()) {
+            log.error("Activity's instance doesn't exist");
+            throw new InstanceNotFoundException(instanceId.getDomain(), instanceId.getId());
+        }
         if (StringUtils.isBlank(activity.getType())) {
             log.error("Activity's type is empty");
             throw new InvalidInputException("type", activity.getType());

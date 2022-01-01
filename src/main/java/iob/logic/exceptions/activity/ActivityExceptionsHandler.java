@@ -32,6 +32,17 @@ public class ActivityExceptionsHandler {
         return ResponseEntity.status(response.getHttpStatus()).body(response);
     }
 
+    @ExceptionHandler(MultipleSignupsException.class)
+    private ResponseEntity<ExceptionResponse> handleMultipleSignupsException(HttpServletRequest request, MultipleSignupsException e) {
+        ExceptionResponse response = new ExceptionResponse(
+                String.format("User with email %s in domain %s is already signed to the system",
+                        e.getUserEmail(), e.getUserDomain()),
+                request.getRequestURI(),
+                HttpStatus.CONFLICT
+        );
+        return ResponseEntity.status(response.getHttpStatus()).body(response);
+    }
+
     @ExceptionHandler(MissingLoginInstanceException.class)
     private ResponseEntity<ExceptionResponse> handleMissingLoginInstanceException(HttpServletRequest request, MissingLoginInstanceException e) {
         ExceptionResponse response = new ExceptionResponse(

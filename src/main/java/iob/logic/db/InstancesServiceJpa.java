@@ -3,9 +3,11 @@ package iob.logic.db;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.converters.InstanceConverter;
 import iob.boundaries.helpers.InstanceIdBoundary;
+import iob.boundaries.helpers.UserIdBoundary;
 import iob.data.InstanceEntity;
 import iob.logic.SearchableInstancesService;
 import iob.logic.UserPermissionsHandler;
+import iob.logic.UsersService;
 import iob.logic.activities.CustomizedInstancesService;
 import iob.logic.annotations.ParameterType;
 import iob.logic.annotations.RoleParameter;
@@ -38,13 +40,15 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     private final InstancesDao instancesDao;
     private final InstanceConverter instanceConverter;
     private final UserPermissionsHandler permissionsHandler;
+    private final UsersService usersService;
     //</editor-fold>
 
     @Autowired
-    public InstancesServiceJpa(InstancesDao instancesDao, InstanceConverter converter, UserPermissionsHandler permissionsHandler) {
+    public InstancesServiceJpa(InstancesDao instancesDao, InstanceConverter converter, UserPermissionsHandler permissionsHandler, UsersService usersService) {
         this.instancesDao = instancesDao;
         this.instanceConverter = converter;
         this.permissionsHandler = permissionsHandler;
+        this.usersService = usersService;
     }
 
     //<editor-fold desc="Get methods">
@@ -210,7 +214,10 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
 
     //<editor-fold desc="Helper methods">
 
-    private static void validateInstance(InstanceBoundary instance) {
+    private void validateInstance(InstanceBoundary instance) {
+        UserIdBoundary userIdBoundary = instance.getCreatedBy().getUserId();
+        // Try to get the user from the DB
+        usersService.login(userIdBoundary.getDomain(), userIdBoundary.getEmail());
         if (StringUtils.isBlank(instance.getName()))
             throw new InvalidInputException("name", instance.getName());
 

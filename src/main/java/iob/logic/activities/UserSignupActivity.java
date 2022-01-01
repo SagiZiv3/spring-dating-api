@@ -5,6 +5,8 @@ import iob.boundaries.ActivityBoundary;
 import iob.boundaries.InstanceBoundary;
 import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.Location;
+import iob.logic.exceptions.activity.MultipleLoginsException;
+import iob.logic.instancesearching.By;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,15 @@ public class UserSignupActivity implements InvokableActivity {
          *   }
          * }
          * */
+        By by = By.userId(activityBoundary.getInvokedBy().getUserId())
+                .and(By.type(InstanceOptions.Types.USER))
+                .and(By.activeIn(Collections.singleton(true)));
+
+        // If there is already an active user instance, throw an exception.
+        if (instancesService.findEntity(by).isPresent()) {
+            log.error("Multiple signups detected");
+            throw new MultipleLoginsException();
+        }
         InstanceBoundary instanceBoundary = createUserInstance(activityBoundary);
         log.info("Created a user instance");
         // Save it in the database
