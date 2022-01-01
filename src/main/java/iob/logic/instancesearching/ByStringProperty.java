@@ -13,7 +13,7 @@ public class ByStringProperty extends By {
     }
 
     @Override
-    public String toString() {
+    protected String getHumanReadableValue() {
         return String.format("\"%s\" equals \"%s\"", propertyName, value);
     }
 

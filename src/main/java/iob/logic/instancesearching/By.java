@@ -4,13 +4,11 @@ import iob.boundaries.helpers.InstanceIdBoundary;
 import iob.boundaries.helpers.TimeFrame;
 import iob.boundaries.helpers.UserIdBoundary;
 import iob.data.InstanceEntity;
-import lombok.Getter;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collection;
 
 public abstract class By {
-    @Getter
     private Specification<InstanceEntity> query;
     private StringBuilder stringBuilder;
 
@@ -74,23 +72,33 @@ public abstract class By {
 
     //<editor-fold desc="Concatenation methods">
     public By and(By by) {
-        if (query == null) {
-            query = getSpecification();
-            stringBuilder = new StringBuilder(toString());
-        }
-        stringBuilder.append(", and ").append(by.toString());
-        query = query.and(by.getSpecification());
+        query = getQuery().and(by.getSpecification());
+        getStringBuilder().append(", and ").append(by);
         return this;
     }
     //</editor-fold>
 
     @Override
-    public abstract String toString();
-
-    public String getHumanReadableValue() {
+    public String toString() {
         if (stringBuilder == null)
-            return toString();
+            return getHumanReadableValue();
         return stringBuilder.toString();
+    }
+
+    protected abstract String getHumanReadableValue();
+
+    public Specification<InstanceEntity> getQuery() {
+        if (query == null) {
+            query = getSpecification();
+            stringBuilder = new StringBuilder(toString());
+        }
+        return query;
+    }
+
+    private StringBuilder getStringBuilder() {
+        if (stringBuilder == null)
+            stringBuilder = new StringBuilder(toString());
+        return stringBuilder;
     }
 
     protected abstract Specification<InstanceEntity> getSpecification();

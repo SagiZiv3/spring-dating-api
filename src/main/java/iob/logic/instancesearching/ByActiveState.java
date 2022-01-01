@@ -14,7 +14,7 @@ public class ByActiveState extends By {
     }
 
     @Override
-    public String toString() {
+    protected String getHumanReadableValue() {
         String allowedStatesString = allowedActiveStates.stream()
                 .map(Object::toString)
                 .collect(Collectors.joining(", "));

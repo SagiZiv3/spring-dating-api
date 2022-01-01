@@ -14,7 +14,7 @@ public class ById extends By {
     }
 
     @Override
-    public String toString() {
+    protected String getHumanReadableValue() {
         return String.format("\"id\" is {domain=%s, id=%s}", domain, id);
     }
 

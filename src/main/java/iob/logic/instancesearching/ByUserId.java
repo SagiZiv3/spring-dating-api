@@ -14,7 +14,7 @@ public class ByUserId extends By {
     }
 
     @Override
-    public String toString() {
+    protected String getHumanReadableValue() {
         return String.format("\"createBy\" is {user email: %s, user domain: %s}", email, domain);
     }
 

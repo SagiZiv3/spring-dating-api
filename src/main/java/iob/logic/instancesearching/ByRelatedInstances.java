@@ -17,7 +17,7 @@ public class ByRelatedInstances extends By {
     }
 
     @Override
-    public String toString() {
+    protected String getHumanReadableValue() {
         return String.format("\"%s\" with id {domain=%s, id=%s}", relatedInstancesName, domain, id);
     }
 

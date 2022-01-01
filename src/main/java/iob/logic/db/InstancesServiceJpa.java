@@ -62,7 +62,7 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
                                                   @RoleParameter(parameterType = ParameterType.EMAIL) String userEmail,
                                                   int page, int size) {
         by = by.and(By.activeIn(permissionsHandler.getAllowedActiveStatesForUser(userDomain, userEmail)));
-        log.info("Searching for instances in database with: {}", by.getHumanReadableValue());
+        log.info("Searching for instances in database with: {}", by.toString());
         return findAllEntities(by, getDefaultPageable(page, size));
     }
 
@@ -81,7 +81,7 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     @Override
     @Transactional(readOnly = true)
     public Optional<InstanceBoundary> findEntity(By by) {
-        log.trace("Searching for entity with: {}", by.getHumanReadableValue());
+        log.trace("Searching for instance with: {}", by.toString());
         Optional<InstanceEntity> instanceEntity = instancesDao.findOne(by.getQuery());
         return instanceEntity.map(instanceConverter::toBoundary);
     }
@@ -91,7 +91,7 @@ public class InstancesServiceJpa implements SearchableInstancesService, Customiz
     @Override
     @Transactional(readOnly = true)
     public List<InstanceBoundary> findAllEntities(By by, Pageable page) {
-        log.trace("Searching for entity with: {}", by.getHumanReadableValue());
+        log.trace("Searching for instances with: {}", by.toString());
         return instanceConverter.toBoundaries(
                 instancesDao.findAll(by.getQuery(), page).getContent()
         );

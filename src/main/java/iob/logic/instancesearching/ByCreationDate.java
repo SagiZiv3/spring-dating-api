@@ -12,7 +12,7 @@ public class ByCreationDate extends By {
     }
 
     @Override
-    public String toString() {
+    protected String getHumanReadableValue() {
         return String.format("\"createdTimestamp\" between %s and %s", timeFrame.getStartDate(), timeFrame.getEndDate());
     }
 
