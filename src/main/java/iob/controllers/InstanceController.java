@@ -121,8 +121,9 @@ public class InstanceController {
 
         InstanceBoundary instance = instancesService.createInstance(userDomain, userEmail, newInstance);
 
-        URI instanceUri = uriComponentsBuilder.path(URLS.INSTANCES.GET).buildAndExpand(userDomain, userEmail,
-                instance.getInstanceId().getDomain(), instance.getInstanceId().getId()).toUri();
+        URI instanceUri = uriComponentsBuilder.path(URLS.INSTANCES.ROOT + URLS.INSTANCES.GET)
+                .buildAndExpand(userDomain, userEmail,
+                        instance.getInstanceId().getDomain(), instance.getInstanceId().getId()).toUri();
         return ResponseEntity.created(instanceUri).body(instance);
     }
     //</editor-fold>
