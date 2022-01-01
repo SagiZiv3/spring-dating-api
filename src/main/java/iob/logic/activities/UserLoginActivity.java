@@ -7,12 +7,14 @@ import iob.boundaries.helpers.CreatedByBoundary;
 import iob.boundaries.helpers.Location;
 import iob.logic.exceptions.activity.MultipleLoginsException;
 import iob.logic.instancesearching.By;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
 @Service("userLogin")
+@Slf4j
 public class UserLoginActivity implements InvokableActivity {
     private final CustomizedInstancesService instancesService;
     private final ObjectMapper objectMapper;
@@ -50,15 +52,18 @@ public class UserLoginActivity implements InvokableActivity {
          *   }
          * }
          * */
+        log.info("Invoking login activity");
         By by = By.childOf(activityBoundary.getInstance().getInstanceId())
                 .and(By.type(InstanceOptions.Types.USER_LOGIN))
                 .and(By.activeIn(Collections.singleton(true)));
 
         // If there is already an active login instance, throw an exception (we only support one login).
         if (instancesService.findEntity(by).isPresent()) {
+            log.error("Multiple logins detected");
             throw new MultipleLoginsException();
         }
         InstanceBoundary instanceBoundary = createLoginInstance(activityBoundary);
+        log.trace("Saving login instance in DB");
         // Save it in the database
         InstanceBoundary storedInstance = instancesService.store(instanceBoundary);
         instancesService.bindInstances(activityBoundary.getInstance().getInstanceId(),
@@ -68,6 +73,7 @@ public class UserLoginActivity implements InvokableActivity {
     }
 
     private InstanceBoundary createLoginInstance(ActivityBoundary activityBoundary) {
+        log.trace("Creating a login instance for user {}", activityBoundary.getInvokedBy().getUserId());
         // Extract location from activity
         // The location is the user's current location.
         Location location = objectMapper.convertValue(

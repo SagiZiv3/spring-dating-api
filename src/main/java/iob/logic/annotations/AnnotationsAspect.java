@@ -33,11 +33,11 @@ public class AnnotationsAspect {
 
     @Around("@annotation(iob.logic.annotations.RoleRestricted)")
     public Object authorizeUserRole(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
-        log.info("Checking user's permission");
         MethodSignature methodSignature = (MethodSignature) proceedingJoinPoint.getSignature();
+        log.info("Checking user's permission to invoke: {}", methodSignature.getName());
         Map<ParameterType, String> authorizationParameters = getParameterTypeStringMap(proceedingJoinPoint, methodSignature);
 
-        log.debug(String.valueOf(authorizationParameters));
+        log.debug("Extracted parameters {}", authorizationParameters);
 
         // Get the roles from the annotation.
         UserRoleParameter[] permittedRoles = methodSignature.getMethod()
@@ -47,10 +47,12 @@ public class AnnotationsAspect {
         permissionsHandler.throwIfNotAuthorized(getIfExist(ParameterType.DOMAIN, authorizationParameters),
                 getIfExist(ParameterType.EMAIL, authorizationParameters), permittedRoles);
 
+        // Invoke the wrapped method
         return proceedingJoinPoint.proceed();
     }
 
     private Map<ParameterType, String> getParameterTypeStringMap(@NonNull ProceedingJoinPoint proceedingJoinPoint, @NonNull MethodSignature methodSignature) {
+        log.trace("Extracting parameters from method's signature");
         Parameter[] parameters = methodSignature.getMethod().getParameters();
         Object[] parametersValues = proceedingJoinPoint.getArgs();
 
@@ -70,9 +72,12 @@ public class AnnotationsAspect {
     }
 
     private String getIfExist(ParameterType key, Map<ParameterType, String> map) {
-        if (!map.containsKey(key))
+        if (!map.containsKey(key)) {
+            String parameterName = WordUtils.capitalizeFully(key.name());
+            log.error("Missing  authorization parameter: {}", parameterName);
             throw new RuntimeException(String.format("Missing authorization parameter: %s",
-                    WordUtils.capitalizeFully(key.name())));
+                    parameterName));
+        }
         return map.get(key);
     }
 

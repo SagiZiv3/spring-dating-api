@@ -27,6 +27,7 @@ public class UserSignupActivity implements InvokableActivity {
 
     @Override
     public Object invoke(ActivityBoundary activityBoundary) {
+        log.info("Invoking user signup activity");
         /*
          * Activity expected structure (ignoring unnecessary attributes):
          * {
@@ -50,8 +51,6 @@ public class UserSignupActivity implements InvokableActivity {
          *   }
          * }
          * */
-        // Extract location from activity
-        log.info("Invoking user sign up activity");
         InstanceBoundary instanceBoundary = createUserInstance(activityBoundary);
         log.info("Created a user instance");
         // Save it in the database
@@ -61,6 +60,7 @@ public class UserSignupActivity implements InvokableActivity {
     }
 
     private InstanceBoundary createUserInstance(ActivityBoundary activityBoundary) {
+        log.trace("Creating user instance for user {}", activityBoundary.getInvokedBy().getUserId());
         Location location = extractLocation(activityBoundary);
         // Create an InstanceBoundary of type "user"
         InstanceBoundary instanceBoundary = new InstanceBoundary();
@@ -82,7 +82,8 @@ public class UserSignupActivity implements InvokableActivity {
             );
             log.debug("Specified location: {}", location);
         } else {
-            location = null;
+            log.warn("Location wasn't specified in activity");
+            location = new Location();
         }
         return location;
     }
